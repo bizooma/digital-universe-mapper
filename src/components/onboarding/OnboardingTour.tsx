@@ -35,12 +35,21 @@ export function OnboardingTour({
   const updatePosition = useCallback(() => {
     if (!step) return;
 
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Responsive tooltip sizing
+    const isSmallScreen = viewportWidth < 1024;
+    const tooltipWidth = isSmallScreen ? Math.min(280, viewportWidth - 32) : 320;
+    const tooltipHeight = 160;
+    const padding = isSmallScreen ? 12 : 16;
+
     const target = document.querySelector(step.target);
     if (!target) {
       // If target not found, center the tooltip
       setTooltipPosition({
-        top: window.innerHeight / 2 - 100,
-        left: window.innerWidth / 2 - 160,
+        top: Math.max(padding, viewportHeight / 2 - tooltipHeight / 2),
+        left: Math.max(padding, viewportWidth / 2 - tooltipWidth / 2),
         arrowPosition: "top",
       });
       setTargetRect(null);
@@ -50,55 +59,80 @@ export function OnboardingTour({
     const rect = target.getBoundingClientRect();
     setTargetRect(rect);
 
-    const tooltipWidth = 320;
-    const tooltipHeight = 160;
-    const padding = 16;
-
     let position: TooltipPosition;
+    let preferredPosition = step.position;
 
-    switch (step.position) {
+    // On smaller screens, prefer bottom/top positioning to avoid horizontal overflow
+    if (isSmallScreen && (preferredPosition === "left" || preferredPosition === "right")) {
+      // Check if there's more space above or below
+      const spaceAbove = rect.top;
+      const spaceBelow = viewportHeight - rect.bottom;
+      preferredPosition = spaceBelow >= spaceAbove ? "bottom" : "top";
+    }
+
+    switch (preferredPosition) {
       case "top":
         position = {
-          bottom: window.innerHeight - rect.top + padding,
-          left: Math.max(padding, rect.left + rect.width / 2 - tooltipWidth / 2),
+          bottom: viewportHeight - rect.top + padding,
+          left: Math.max(padding, Math.min(
+            rect.left + rect.width / 2 - tooltipWidth / 2,
+            viewportWidth - tooltipWidth - padding
+          )),
           arrowPosition: "bottom",
         };
+        // Check if tooltip would go off-screen at top
+        if (rect.top - tooltipHeight - padding < 0) {
+          position = {
+            top: rect.bottom + padding,
+            left: position.left,
+            arrowPosition: "top",
+          };
+        }
         break;
       case "bottom":
         position = {
-          top: rect.bottom + padding,
-          left: Math.max(padding, rect.left + rect.width / 2 - tooltipWidth / 2),
+          top: Math.min(rect.bottom + padding, viewportHeight - tooltipHeight - padding),
+          left: Math.max(padding, Math.min(
+            rect.left + rect.width / 2 - tooltipWidth / 2,
+            viewportWidth - tooltipWidth - padding
+          )),
           arrowPosition: "top",
         };
         break;
       case "left":
         position = {
-          top: Math.max(padding, rect.top + rect.height / 2 - tooltipHeight / 2),
-          right: window.innerWidth - rect.left + padding,
+          top: Math.max(padding, Math.min(
+            rect.top + rect.height / 2 - tooltipHeight / 2,
+            viewportHeight - tooltipHeight - padding
+          )),
+          right: Math.max(padding, viewportWidth - rect.left + padding),
           arrowPosition: "right",
         };
+        // Check if tooltip would go off-screen at left
+        if (rect.left - tooltipWidth - padding < 0) {
+          position = {
+            top: position.top,
+            left: rect.right + padding,
+            arrowPosition: "left",
+          };
+        }
         break;
       case "right":
         position = {
-          top: Math.max(padding, rect.top + rect.height / 2 - tooltipHeight / 2),
-          left: rect.right + padding,
+          top: Math.max(padding, Math.min(
+            rect.top + rect.height / 2 - tooltipHeight / 2,
+            viewportHeight - tooltipHeight - padding
+          )),
+          left: Math.min(rect.right + padding, viewportWidth - tooltipWidth - padding),
           arrowPosition: "left",
         };
         break;
       default:
         position = {
-          top: rect.bottom + padding,
-          left: rect.left,
+          top: Math.min(rect.bottom + padding, viewportHeight - tooltipHeight - padding),
+          left: Math.max(padding, Math.min(rect.left, viewportWidth - tooltipWidth - padding)),
           arrowPosition: "top",
         };
-    }
-
-    // Ensure tooltip stays within viewport
-    if (position.left !== undefined) {
-      position.left = Math.min(position.left, window.innerWidth - tooltipWidth - padding);
-    }
-    if (position.top !== undefined) {
-      position.top = Math.min(position.top, window.innerHeight - tooltipHeight - padding);
     }
 
     setTooltipPosition(position);
@@ -163,7 +197,7 @@ export function OnboardingTour({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: "spring", damping: 20 }}
-            className="fixed z-[102] w-80 bg-card border border-border rounded-xl shadow-2xl"
+            className="fixed z-[102] w-[280px] lg:w-80 max-w-[calc(100vw-24px)] bg-card border border-border rounded-xl shadow-2xl"
             style={{
               top: tooltipPosition.top,
               bottom: tooltipPosition.bottom,
