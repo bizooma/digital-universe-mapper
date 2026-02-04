@@ -9,12 +9,17 @@ import {
   addEdge,
   useNodesState,
   useEdgesState,
+  getNodesBounds,
+  getViewportForBounds,
+  useReactFlow,
   type Connection,
   type Edge,
   type Node,
   Panel,
+  ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { toPng } from "html-to-image";
 import { motion } from "framer-motion";
 import {
   Zap,
@@ -34,6 +39,7 @@ import {
   Check,
   Copy,
   Crown,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes, type NodeCategory } from "@/components/editor/LinkNode";
@@ -77,7 +83,7 @@ const getInitialEdges = (): Edge[] => {
   return [];
 };
 
-export default function MapEditor() {
+function MapEditorInner() {
   const { id } = useParams();
   const isNewMap = id === "new";
   const [nodes, setNodes, onNodesChange] = useNodesState(getInitialNodes(isNewMap));
@@ -90,8 +96,10 @@ export default function MapEditor() {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   
   const { isFreeTier, isPro, limits, canAddNode } = useSubscription();
+  const { getNodes } = useReactFlow();
 
   // Generate a shareable URL (in production this would be a real permalink)
   const shareUrl = `${window.location.origin}/view/${id || "new"}`;
@@ -171,14 +179,73 @@ export default function MapEditor() {
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (isFreeTier) {
       setShowExportDialog(true);
-    } else {
-      // In production, this would trigger the actual export
-      toast.success("Exporting map...", {
-        description: "Your PNG will download shortly.",
+      return;
+    }
+
+    // Pro users get actual PNG export
+    setIsExporting(true);
+    
+    try {
+      // Find the React Flow viewport element
+      const viewport = document.querySelector('.react-flow__viewport') as HTMLElement;
+      if (!viewport) {
+        throw new Error("Could not find map viewport");
+      }
+
+      // Get the bounds of all nodes
+      const currentNodes = getNodes();
+      if (currentNodes.length === 0) {
+        toast.error("No nodes to export");
+        setIsExporting(false);
+        return;
+      }
+
+      const nodesBounds = getNodesBounds(currentNodes);
+      const padding = 50;
+      const imageWidth = nodesBounds.width + padding * 2;
+      const imageHeight = nodesBounds.height + padding * 2;
+
+      // Calculate the viewport transform to fit all nodes
+      const transform = getViewportForBounds(
+        nodesBounds,
+        imageWidth,
+        imageHeight,
+        0.5,
+        2,
+        padding
+      );
+
+      // Generate the PNG
+      const dataUrl = await toPng(viewport, {
+        backgroundColor: "hsl(240, 10%, 4%)", // Match background color
+        width: imageWidth,
+        height: imageHeight,
+        style: {
+          width: `${imageWidth}px`,
+          height: `${imageHeight}px`,
+          transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
+        },
       });
+
+      // Create download link
+      const link = document.createElement('a');
+      link.download = `${mapName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.png`;
+      link.href = dataUrl;
+      link.click();
+
+      toast.success("Map exported successfully!", {
+        description: `"${mapName}" has been downloaded as PNG.`,
+      });
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export map", {
+        description: "Please try again.",
+      });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -308,10 +375,14 @@ export default function MapEditor() {
 
           <div className="h-6 w-px bg-border mx-2" />
 
-          <Button variant="ghost" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-            {isFreeTier && <Lock className="h-3 w-3 ml-1 opacity-50" />}
+          <Button variant="ghost" size="sm" onClick={handleExport} disabled={isExporting}>
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            {isExporting ? "Exporting..." : "Export"}
+            {isFreeTier && !isExporting && <Lock className="h-3 w-3 ml-1 opacity-50" />}
           </Button>
           <Button variant="ghost" size="sm" onClick={handleShare}>
             <Share2 className="h-4 w-4 mr-2" />
@@ -424,5 +495,14 @@ export default function MapEditor() {
         />
       </div>
     </div>
+  );
+}
+
+// Wrap with ReactFlowProvider to access useReactFlow hook
+export default function MapEditor() {
+  return (
+    <ReactFlowProvider>
+      <MapEditorInner />
+    </ReactFlowProvider>
   );
 }
