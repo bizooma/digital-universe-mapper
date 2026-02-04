@@ -30,10 +30,13 @@ import {
   Circle,
   LayoutGrid,
   Save,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes, type NodeCategory } from "@/components/editor/LinkNode";
 import { AddNodePanel } from "@/components/editor/AddNodePanel";
+import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
+import { useSubscription } from "@/hooks/useSubscription";
 
 // Initial demo nodes
 const initialNodes: Node[] = [
@@ -61,27 +64,12 @@ const initialNodes: Node[] = [
     position: { x: 100, y: 320 },
     data: { label: "My Channel", url: "https://youtube.com/@channel", category: "content", platform: "youtube" },
   },
-  {
-    id: "linktree",
-    type: "linkNode",
-    position: { x: 700, y: 300 },
-    data: { label: "linktr.ee/me", url: "https://linktr.ee/me", category: "link", platform: "linktree" },
-  },
-  {
-    id: "newsletter",
-    type: "linkNode",
-    position: { x: 400, y: 400 },
-    data: { label: "Newsletter", url: "https://newsletter.com", category: "email", platform: "newsletter" },
-  },
 ];
 
 const initialEdges: Edge[] = [
   { id: "e-hub-twitter", source: "hub", target: "twitter", animated: true },
   { id: "e-hub-instagram", source: "hub", target: "instagram", animated: true },
   { id: "e-hub-youtube", source: "hub", target: "youtube", animated: true },
-  { id: "e-hub-linktree", source: "hub", target: "linktree", animated: true },
-  { id: "e-hub-newsletter", source: "hub", target: "newsletter", animated: true },
-  { id: "e-linktree-instagram", source: "linktree", target: "instagram", animated: true, style: { stroke: "hsl(174, 72%, 56%)" } },
 ];
 
 export default function MapEditor() {
@@ -89,8 +77,11 @@ export default function MapEditor() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [isAddPanelOpen, setIsAddPanelOpen] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [backgroundVariant, setBackgroundVariant] = useState<"dots" | "lines" | "cross">("dots");
-  const nodeIdCounter = useRef(7);
+  const nodeIdCounter = useRef(5);
+  
+  const { isFreeTier, limits, canAddNode } = useSubscription();
 
   const onConnect = useCallback(
     (params: Connection) =>
@@ -100,6 +91,14 @@ export default function MapEditor() {
     [setEdges]
   );
 
+  const handleOpenAddPanel = () => {
+    if (!canAddNode(nodes.length)) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+    setIsAddPanelOpen(true);
+  };
+
   const handleAddNode = useCallback(
     (nodeData: {
       label: string;
@@ -108,6 +107,12 @@ export default function MapEditor() {
       platform: string;
       notes: string;
     }) => {
+      // Double-check limit before adding
+      if (!canAddNode(nodes.length)) {
+        setShowUpgradeDialog(true);
+        return;
+      }
+
       const newNode: Node = {
         id: `node-${nodeIdCounter.current++}`,
         type: "linkNode",
@@ -122,7 +127,7 @@ export default function MapEditor() {
       };
       setNodes((nds) => [...nds, newNode]);
     },
-    [setNodes]
+    [setNodes, nodes.length, canAddNode]
   );
 
   const cycleBackground = () => {
@@ -131,8 +136,19 @@ export default function MapEditor() {
     setBackgroundVariant(variants[(currentIndex + 1) % variants.length]);
   };
 
+  const atNodeLimit = !canAddNode(nodes.length);
+
   return (
     <div className="h-screen w-screen bg-background flex flex-col">
+      {/* Upgrade Dialog */}
+      <UpgradeLimitDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        limitType="nodes"
+        currentCount={nodes.length}
+        maxCount={limits.maxNodesPerMap}
+      />
+
       {/* Top Toolbar */}
       <header className="h-14 bg-card/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-4 z-20">
         <div className="flex items-center gap-4">
@@ -151,6 +167,17 @@ export default function MapEditor() {
               className="bg-transparent border-none text-foreground font-medium focus:outline-none focus:ring-0 w-auto"
             />
           </div>
+          
+          {/* Node count indicator for free tier */}
+          {isFreeTier && (
+            <div className={`text-xs px-2 py-1 rounded-full ${
+              atNodeLimit 
+                ? "bg-destructive/10 text-destructive" 
+                : "bg-secondary text-muted-foreground"
+            }`}>
+              {nodes.length}/{limits.maxNodesPerMap} nodes
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -221,12 +248,12 @@ export default function MapEditor() {
               className="flex flex-col gap-2 bg-card border border-border rounded-xl p-2 shadow-lg"
             >
               <Button
-                variant="hero"
+                variant={atNodeLimit ? "outline" : "hero"}
                 size="icon"
-                onClick={() => setIsAddPanelOpen(true)}
-                title="Add Node"
+                onClick={handleOpenAddPanel}
+                title={atNodeLimit ? "Node limit reached - Upgrade to add more" : "Add Node"}
               >
-                <Plus className="h-5 w-5" />
+                {atNodeLimit ? <Lock className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
               </Button>
               <div className="h-px bg-border" />
               <Button
@@ -260,7 +287,10 @@ export default function MapEditor() {
               className="flex gap-4 bg-card/80 backdrop-blur-xl border border-border rounded-xl px-4 py-2 shadow-lg text-sm"
             >
               <span className="text-muted-foreground">
-                <span className="font-medium text-foreground">{nodes.length}</span> nodes
+                <span className={`font-medium ${atNodeLimit ? "text-destructive" : "text-foreground"}`}>
+                  {nodes.length}
+                </span>
+                {isFreeTier && <span className="text-muted-foreground">/{limits.maxNodesPerMap}</span>} nodes
               </span>
               <span className="text-muted-foreground">
                 <span className="font-medium text-foreground">{edges.length}</span> connections
