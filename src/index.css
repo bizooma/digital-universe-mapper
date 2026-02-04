@@ -264,6 +264,20 @@
     opacity: 1 !important;
     pointer-events: auto !important;
   }
+
+  /* Edge hover effects for clickable deletion */
+  .react-flow__edge {
+    cursor: pointer;
+  }
+
+  .react-flow__edge-path {
+    transition: stroke-width 0.2s ease-out, stroke 0.2s ease-out;
+  }
+
+  .react-flow__edge:hover .react-flow__edge-path {
+    stroke-width: 4px !important;
+    stroke: hsl(var(--destructive)) !important;
+  }
 }
 
 @layer utilities {
