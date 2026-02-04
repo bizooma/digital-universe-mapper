@@ -11,6 +11,22 @@ import {
   ShoppingBag,
   FileText
 } from "lucide-react";
+import {
+  FacebookIcon,
+  TikTokIcon,
+  PinterestIcon,
+  ThreadsIcon,
+  WhatsAppIcon,
+  TelegramIcon,
+  DiscordIcon,
+  SpotifyIcon,
+  GitHubIcon,
+  DribbbleIcon,
+  BehanceIcon,
+  TwitchIcon,
+  PatreonIcon,
+  RedditIcon,
+} from "./PlatformIcons";
 
 export type NodeCategory = 
   | "website" 
@@ -57,16 +73,48 @@ const categoryConfig: Record<NodeCategory, { color: string; gradient: string }> 
 };
 
 const platformIcons: Record<string, React.ElementType> = {
+  // Social media platforms
+  facebook: FacebookIcon,
+  fb: FacebookIcon,
   twitter: Twitter,
   x: Twitter,
   instagram: Instagram,
+  ig: Instagram,
   youtube: Youtube,
+  yt: Youtube,
   linkedin: Linkedin,
+  tiktok: TikTokIcon,
+  pinterest: PinterestIcon,
+  threads: ThreadsIcon,
+  whatsapp: WhatsAppIcon,
+  telegram: TelegramIcon,
+  discord: DiscordIcon,
+  reddit: RedditIcon,
+  twitch: TwitchIcon,
+  
+  // Music/Audio
+  spotify: SpotifyIcon,
+  
+  // Portfolio/Design
+  dribbble: DribbbleIcon,
+  behance: BehanceIcon,
+  github: GitHubIcon,
+  
+  // Creator economy
+  patreon: PatreonIcon,
+  
+  // Link aggregators
   linktree: Link2,
-  newsletter: Mail,
-  shopify: ShoppingBag,
+  
+  // Content platforms
   medium: FileText,
   substack: FileText,
+  newsletter: Mail,
+  
+  // E-commerce
+  shopify: ShoppingBag,
+  
+  // Default
   default: Globe,
 };
 
