@@ -20,6 +20,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { toPng } from "html-to-image";
+import { jsPDF } from "jspdf";
 import { motion } from "framer-motion";
 import {
   Zap,
@@ -27,6 +28,8 @@ import {
   Undo2,
   Redo2,
   Maximize2,
+  FileImage,
+  FileText,
   Download,
   Share2,
   Settings,
@@ -55,6 +58,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Start with empty canvas - just a central hub node for new maps
 const getInitialNodes = (isNewMap: boolean): Node[] => {
@@ -179,56 +188,59 @@ function MapEditorInner() {
     }
   };
 
-  const handleExport = async () => {
+  const generateImageData = async () => {
+    // Find the React Flow viewport element
+    const viewport = document.querySelector('.react-flow__viewport') as HTMLElement;
+    if (!viewport) {
+      throw new Error("Could not find map viewport");
+    }
+
+    // Get the bounds of all nodes
+    const currentNodes = getNodes();
+    if (currentNodes.length === 0) {
+      throw new Error("No nodes to export");
+    }
+
+    const nodesBounds = getNodesBounds(currentNodes);
+    const padding = 50;
+    const imageWidth = nodesBounds.width + padding * 2;
+    const imageHeight = nodesBounds.height + padding * 2;
+
+    // Calculate the viewport transform to fit all nodes
+    const transform = getViewportForBounds(
+      nodesBounds,
+      imageWidth,
+      imageHeight,
+      0.5,
+      2,
+      padding
+    );
+
+    // Generate the PNG
+    const dataUrl = await toPng(viewport, {
+      backgroundColor: "hsl(240, 10%, 4%)", // Match background color
+      width: imageWidth,
+      height: imageHeight,
+      style: {
+        width: `${imageWidth}px`,
+        height: `${imageHeight}px`,
+        transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
+      },
+    });
+
+    return { dataUrl, imageWidth, imageHeight };
+  };
+
+  const handleExportPNG = async () => {
     if (isFreeTier) {
       setShowExportDialog(true);
       return;
     }
 
-    // Pro users get actual PNG export
     setIsExporting(true);
     
     try {
-      // Find the React Flow viewport element
-      const viewport = document.querySelector('.react-flow__viewport') as HTMLElement;
-      if (!viewport) {
-        throw new Error("Could not find map viewport");
-      }
-
-      // Get the bounds of all nodes
-      const currentNodes = getNodes();
-      if (currentNodes.length === 0) {
-        toast.error("No nodes to export");
-        setIsExporting(false);
-        return;
-      }
-
-      const nodesBounds = getNodesBounds(currentNodes);
-      const padding = 50;
-      const imageWidth = nodesBounds.width + padding * 2;
-      const imageHeight = nodesBounds.height + padding * 2;
-
-      // Calculate the viewport transform to fit all nodes
-      const transform = getViewportForBounds(
-        nodesBounds,
-        imageWidth,
-        imageHeight,
-        0.5,
-        2,
-        padding
-      );
-
-      // Generate the PNG
-      const dataUrl = await toPng(viewport, {
-        backgroundColor: "hsl(240, 10%, 4%)", // Match background color
-        width: imageWidth,
-        height: imageHeight,
-        style: {
-          width: `${imageWidth}px`,
-          height: `${imageHeight}px`,
-          transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
-        },
-      });
+      const { dataUrl } = await generateImageData();
 
       // Create download link
       const link = document.createElement('a');
@@ -242,7 +254,45 @@ function MapEditorInner() {
     } catch (error) {
       console.error("Export error:", error);
       toast.error("Failed to export map", {
-        description: "Please try again.",
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    if (isFreeTier) {
+      setShowExportDialog(true);
+      return;
+    }
+
+    setIsExporting(true);
+    
+    try {
+      const { dataUrl, imageWidth, imageHeight } = await generateImageData();
+
+      // Create PDF with the image
+      const orientation = imageWidth > imageHeight ? 'landscape' : 'portrait';
+      const pdf = new jsPDF({
+        orientation,
+        unit: 'px',
+        format: [imageWidth, imageHeight],
+      });
+
+      // Add the image to the PDF
+      pdf.addImage(dataUrl, 'PNG', 0, 0, imageWidth, imageHeight);
+      
+      // Save the PDF
+      pdf.save(`${mapName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`);
+
+      toast.success("Map exported successfully!", {
+        description: `"${mapName}" has been downloaded as PDF.`,
+      });
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export map", {
+        description: error instanceof Error ? error.message : "Please try again.",
       });
     } finally {
       setIsExporting(false);
@@ -375,15 +425,36 @@ function MapEditorInner() {
 
           <div className="h-6 w-px bg-border mx-2" />
 
-          <Button variant="ghost" size="sm" onClick={handleExport} disabled={isExporting}>
-            {isExporting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
+          {isFreeTier ? (
+            <Button variant="ghost" size="sm" onClick={() => setShowExportDialog(true)}>
               <Download className="h-4 w-4 mr-2" />
-            )}
-            {isExporting ? "Exporting..." : "Export"}
-            {isFreeTier && !isExporting && <Lock className="h-3 w-3 ml-1 opacity-50" />}
-          </Button>
+              Export
+              <Lock className="h-3 w-3 ml-1 opacity-50" />
+            </Button>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" disabled={isExporting}>
+                  {isExporting ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4 mr-2" />
+                  )}
+                  {isExporting ? "Exporting..." : "Export"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportPNG}>
+                  <FileImage className="h-4 w-4 mr-2" />
+                  Export as PNG
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPDF}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <Button variant="ghost" size="sm" onClick={handleShare}>
             <Share2 className="h-4 w-4 mr-2" />
             Share
