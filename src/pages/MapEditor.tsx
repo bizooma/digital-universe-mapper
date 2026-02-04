@@ -500,8 +500,9 @@ function MapEditorInner() {
             color="hsl(var(--border))"
           />
           <Controls
-            className="!bg-card !border-border !shadow-lg [&>button]:!bg-card [&>button]:!border-border [&>button]:!text-foreground [&>button:hover]:!bg-secondary"
+            className="!bg-card !border-border !shadow-lg !left-4 !top-[220px] !bottom-auto [&>button]:!bg-card [&>button]:!border-border [&>button]:!text-foreground [&>button:hover]:!bg-secondary"
             showInteractive={false}
+            position="top-left"
           />
           <MiniMap
             className="!bg-card !border-border"
