@@ -43,13 +43,17 @@ import {
   Copy,
   Crown,
   Loader2,
+  Cloud,
+  CloudOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { nodeTypes, type NodeCategory } from "@/components/editor/LinkNode";
+import { nodeTypes, type NodeCategory, type LinkNodeData } from "@/components/editor/LinkNode";
 import { AddNodePanel } from "@/components/editor/AddNodePanel";
+import { EditNodePanel } from "@/components/editor/EditNodePanel";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
+import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -66,6 +70,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Default hub node for new maps
 const getDefaultNodes = (): Node[] => [
@@ -84,6 +94,8 @@ function MapEditorInner() {
   const [nodes, setNodes, onNodesChange] = useNodesState(getDefaultNodes());
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [isAddPanelOpen, setIsAddPanelOpen] = useState(false);
+  const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [backgroundVariant, setBackgroundVariant] = useState<"dots" | "lines" | "cross">("dots");
   const nodeIdCounter = useRef(5);
@@ -96,15 +108,26 @@ function MapEditorInner() {
   const [isLoading, setIsLoading] = useState(!isNewMap);
   const [mapId, setMapId] = useState<string | null>(isNewMap ? null : id || null);
   
+  // Auto-save state
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialLoadRef = useRef(true);
+  
   const { isFreeTier, isPro, limits, canAddNode } = useSubscription();
   const { user } = useAuth();
   const { getNodes } = useReactFlow();
+  
+  // Undo/Redo functionality
+  const { canUndo, canRedo, undo, redo, takeSnapshot, reset: resetHistory } = useUndoRedo({ maxHistory: 50 });
 
   // Load existing map from database
   useEffect(() => {
     const loadMap = async () => {
       if (isNewMap || !id || id === "new") {
         setIsLoading(false);
+        isInitialLoadRef.current = false;
+        // Initialize history for new maps
+        resetHistory(getDefaultNodes(), []);
         return;
       }
 
@@ -124,12 +147,16 @@ function MapEditorInner() {
 
         if (data) {
           setMapName(data.name);
-          setNodes((data.nodes as unknown) as Node[]);
-          setEdges((data.edges as unknown) as Edge[]);
+          const loadedNodes = (data.nodes as unknown) as Node[];
+          const loadedEdges = (data.edges as unknown) as Edge[];
+          setNodes(loadedNodes);
+          setEdges(loadedEdges);
           setMapId(data.id);
           
+          // Initialize history with loaded state
+          resetHistory(loadedNodes, loadedEdges);
+          
           // Update node counter based on existing nodes
-          const loadedNodes = (data.nodes as unknown) as Node[];
           const maxNodeId = loadedNodes.reduce((max, node) => {
             const match = node.id.match(/node-(\d+)/);
             return match ? Math.max(max, parseInt(match[1])) : max;
@@ -141,11 +168,94 @@ function MapEditorInner() {
         toast.error("Failed to load map");
       } finally {
         setIsLoading(false);
+        isInitialLoadRef.current = false;
       }
     };
 
     loadMap();
-  }, [id, isNewMap, navigate, setNodes, setEdges]);
+  }, [id, isNewMap, navigate, setNodes, setEdges, resetHistory]);
+
+  // Auto-save functionality with debounce
+  const performAutoSave = useCallback(async () => {
+    if (!user || !mapId) return;
+    
+    setSaveStatus("saving");
+    
+    try {
+      const { error } = await supabase
+        .from("maps")
+        .update({
+          name: mapName,
+          nodes: JSON.parse(JSON.stringify(nodes)),
+          edges: JSON.parse(JSON.stringify(edges)),
+        })
+        .eq("id", mapId);
+
+      if (error) throw error;
+      setSaveStatus("saved");
+    } catch (err) {
+      console.error("Auto-save error:", err);
+      setSaveStatus("unsaved");
+    }
+  }, [user, mapId, mapName, nodes, edges]);
+
+  // Trigger auto-save when nodes or edges change (debounced)
+  useEffect(() => {
+    // Skip on initial load
+    if (isInitialLoadRef.current || isLoading) return;
+    
+    // Only auto-save if we have a saved map
+    if (!mapId) {
+      setSaveStatus("unsaved");
+      return;
+    }
+
+    setSaveStatus("unsaved");
+    
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+    
+    // Set new timeout for auto-save (2 seconds)
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      performAutoSave();
+    }, 2000);
+    
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [nodes, edges, mapId, performAutoSave, isLoading]);
+
+  // Take snapshot for undo/redo when nodes/edges change
+  useEffect(() => {
+    if (isInitialLoadRef.current || isLoading) return;
+    takeSnapshot(nodes, edges);
+  }, [nodes, edges, takeSnapshot, isLoading]);
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+      const modKey = isMac ? e.metaKey : e.ctrlKey;
+      
+      if (modKey && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      } else if (modKey && e.key === "z" && e.shiftKey) {
+        e.preventDefault();
+        handleRedo();
+      } else if (modKey && e.key === "y") {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Generate a shareable URL
   const shareUrl = `${window.location.origin}/view/${mapId || "new"}`;
@@ -165,6 +275,58 @@ function MapEditorInner() {
     },
     [setEdges]
   );
+
+  // Node click handler for editing
+  const onNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      setSelectedNode(node);
+      setIsEditPanelOpen(true);
+    },
+    []
+  );
+
+  // Handle node save from edit panel
+  const handleNodeSave = useCallback(
+    (nodeId: string, data: Partial<LinkNodeData>) => {
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === nodeId
+            ? { ...node, data: { ...node.data, ...data } }
+            : node
+        )
+      );
+      toast.success("Node updated");
+    },
+    [setNodes]
+  );
+
+  // Handle node delete from edit panel
+  const handleNodeDelete = useCallback(
+    (nodeId: string) => {
+      setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+      setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+      toast.success("Node deleted");
+    },
+    [setNodes, setEdges]
+  );
+
+  // Undo handler
+  const handleUndo = useCallback(() => {
+    const previousState = undo();
+    if (previousState) {
+      setNodes(previousState.nodes);
+      setEdges(previousState.edges);
+    }
+  }, [undo, setNodes, setEdges]);
+
+  // Redo handler
+  const handleRedo = useCallback(() => {
+    const nextState = redo();
+    if (nextState) {
+      setNodes(nextState.nodes);
+      setEdges(nextState.edges);
+    }
+  }, [redo, setNodes, setEdges]);
 
   const handleOpenAddPanel = () => {
     if (!canAddNode(nodes.length)) {
@@ -218,6 +380,12 @@ function MapEditorInner() {
     }
 
     setIsSaving(true);
+    setSaveStatus("saving");
+    
+    // Clear any pending auto-save
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
     
     try {
       if (mapId) {
@@ -233,6 +401,7 @@ function MapEditorInner() {
 
         if (error) throw error;
         
+        setSaveStatus("saved");
         toast.success("Map saved successfully!", {
           description: `"${mapName}" has been updated.`,
         });
@@ -255,12 +424,14 @@ function MapEditorInner() {
         setMapId(data.id);
         navigate(`/editor/${data.id}`, { replace: true });
         
+        setSaveStatus("saved");
         toast.success("Map saved successfully!", {
           description: `"${mapName}" has been created.`,
         });
       }
     } catch (err) {
       console.error("Error saving map:", err);
+      setSaveStatus("unsaved");
       toast.error("Failed to save map", {
         description: "Please try again.",
       });
@@ -509,6 +680,45 @@ function MapEditorInner() {
             />
           </div>
           
+          {/* Auto-save status indicator */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-full transition-colors ${
+                  saveStatus === "saved" 
+                    ? "bg-green-500/10 text-green-500" 
+                    : saveStatus === "saving"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-orange-500/10 text-orange-500"
+                }`}>
+                  {saveStatus === "saved" ? (
+                    <>
+                      <Cloud className="h-3 w-3" />
+                      <span>Saved</span>
+                    </>
+                  ) : saveStatus === "saving" ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CloudOff className="h-3 w-3" />
+                      <span>Unsaved</span>
+                    </>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                {saveStatus === "saved" 
+                  ? "All changes saved" 
+                  : saveStatus === "saving"
+                  ? "Saving changes..."
+                  : mapId ? "Changes will auto-save" : "Save to enable auto-save"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
           {/* Node count indicator for free tier */}
           {isFreeTier && (
             <div className={`text-xs px-2 py-1 rounded-full ${
@@ -522,14 +732,38 @@ function MapEditorInner() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 mr-2">
-            <Button variant="ghost" size="icon-sm" title="Undo">
-              <Undo2 className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon-sm" title="Redo">
-              <Redo2 className="h-4 w-4" />
-            </Button>
-          </div>
+          <TooltipProvider>
+            <div className="flex items-center gap-1 mr-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon-sm" 
+                    onClick={handleUndo}
+                    disabled={!canUndo}
+                    className={!canUndo ? "opacity-50" : ""}
+                  >
+                    <Undo2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon-sm" 
+                    onClick={handleRedo}
+                    disabled={!canRedo}
+                    className={!canRedo ? "opacity-50" : ""}
+                  >
+                    <Redo2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Redo (Ctrl+Shift+Z)</TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
 
           <div className="h-6 w-px bg-border mx-2" />
 
@@ -587,6 +821,7 @@ function MapEditorInner() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onEdgeClick={onEdgeClick}
+          onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
           fitView
           className="bg-background"
@@ -678,6 +913,18 @@ function MapEditorInner() {
           isOpen={isAddPanelOpen}
           onClose={() => setIsAddPanelOpen(false)}
           onAdd={handleAddNode}
+        />
+
+        {/* Edit Node Panel */}
+        <EditNodePanel
+          isOpen={isEditPanelOpen}
+          node={selectedNode}
+          onClose={() => {
+            setIsEditPanelOpen(false);
+            setSelectedNode(null);
+          }}
+          onSave={handleNodeSave}
+          onDelete={handleNodeDelete}
         />
       </div>
     </div>
