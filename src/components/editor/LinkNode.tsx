@@ -1,5 +1,5 @@
-import { memo } from "react";
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { memo, useState, useRef, useEffect, useCallback } from "react";
+import { Handle, Position, useReactFlow, type NodeProps } from "@xyflow/react";
 import { 
   Globe, 
   Twitter, 
@@ -132,8 +132,43 @@ function LinkNode({ data, selected }: NodeProps) {
 export const LinkNodeComponent = memo(LinkNode);
 
 // Hub Node - Central node for main website/brand
-function HubNode({ data, selected }: NodeProps) {
+function HubNode({ data, selected, id }: NodeProps) {
   const nodeData = data as LinkNodeData;
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(nodeData.label);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { setNodes } = useReactFlow();
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleSave = useCallback(() => {
+    if (editValue.trim()) {
+      setNodes((nodes) =>
+        nodes.map((node) =>
+          node.id === id
+            ? { ...node, data: { ...node.data, label: editValue.trim() } }
+            : node
+        )
+      );
+    } else {
+      setEditValue(nodeData.label);
+    }
+    setIsEditing(false);
+  }, [editValue, id, nodeData.label, setNodes]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSave();
+    } else if (e.key === "Escape") {
+      setEditValue(nodeData.label);
+      setIsEditing(false);
+    }
+  };
 
   return (
     <div
@@ -172,10 +207,27 @@ function HubNode({ data, selected }: NodeProps) {
           <Globe className="w-5 h-5 text-primary-foreground" />
         </div>
         <div className="min-w-0">
-          <p className="font-bold text-primary-foreground text-base truncate">
-            {nodeData.label}
-          </p>
-          {nodeData.url && (
+          {isEditing ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={handleSave}
+              onKeyDown={handleKeyDown}
+              className="font-bold text-primary-foreground text-base bg-transparent border-none outline-none w-full min-w-[100px] placeholder:text-primary-foreground/50"
+              placeholder="Enter name..."
+            />
+          ) : (
+            <p 
+              className="font-bold text-primary-foreground text-base truncate cursor-text hover:underline decoration-primary-foreground/40"
+              onDoubleClick={() => setIsEditing(true)}
+              title="Double-click to edit"
+            >
+              {nodeData.label}
+            </p>
+          )}
+          {nodeData.url && !isEditing && (
             <p className="text-sm text-primary-foreground/70 truncate">
               {nodeData.url.replace(/^https?:\/\//, "")}
             </p>
