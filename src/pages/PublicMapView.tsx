@@ -38,6 +38,28 @@ function PublicMapViewInner() {
 
   const shareUrl = window.location.href;
 
+  // Track view on load
+  useEffect(() => {
+    const trackView = async () => {
+      if (!id) return;
+      
+      try {
+        await supabase.functions.invoke("track-view", {
+          body: {
+            mapId: id,
+            userAgent: navigator.userAgent,
+            referrer: document.referrer || null,
+          },
+        });
+      } catch (err) {
+        // Silently fail - don't disrupt user experience
+        console.error("Failed to track view:", err);
+      }
+    };
+
+    trackView();
+  }, [id]);
+
   useEffect(() => {
     const loadMap = async () => {
       if (!id) {

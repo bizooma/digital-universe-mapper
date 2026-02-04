@@ -19,7 +19,8 @@ import {
   Copy,
   Pencil,
   Check,
-  X
+  X,
+  BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -390,6 +391,15 @@ export default function Dashboard() {
               <GitBranch className="h-4 w-4" />
               Shared with me
             </Link>
+            {isPro && (
+              <Link
+                to="/analytics"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+              >
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </Link>
+            )}
           </div>
 
           {/* Upgrade Card - only show for free tier */}
