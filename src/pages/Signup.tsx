@@ -21,7 +21,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-background dark flex">
+    <div className="min-h-screen bg-background flex">
       {/* Left Panel - Visual */}
       <div className="hidden lg:flex flex-1 bg-card relative overflow-hidden">
         <div className="absolute inset-0 canvas-dots opacity-30" />

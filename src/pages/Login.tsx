@@ -20,7 +20,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background dark flex">
+    <div className="min-h-screen bg-background flex">
       {/* Left Panel - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <motion.div
