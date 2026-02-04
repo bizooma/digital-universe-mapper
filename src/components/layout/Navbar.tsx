@@ -52,7 +52,7 @@ export function Navbar() {
                     <Link to="/login">Log in</Link>
                   </Button>
                   <Button variant="hero" asChild>
-                    <Link to="/signup">Start Free</Link>
+                    <Link to="/signup">Sign Up Now</Link>
                   </Button>
                 </>
               )}
@@ -94,7 +94,7 @@ export function Navbar() {
                   <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Log in</Link>
                 </Button>
                 <Button variant="hero" className="w-full" asChild>
-                  <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>Start Free</Link>
+                  <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>Sign Up Now</Link>
                 </Button>
               </div>
             </div>

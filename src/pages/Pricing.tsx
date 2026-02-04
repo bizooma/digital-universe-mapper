@@ -272,7 +272,7 @@ export default function Pricing() {
               </p>
               <Button variant="hero" size="xl" asChild>
                 <Link to="/signup">
-                  Get Started Free
+                  Sign Up Now
                   <ArrowRight className="h-5 w-5" />
                 </Link>
               </Button>
