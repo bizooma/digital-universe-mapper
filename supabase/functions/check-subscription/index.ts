@@ -86,12 +86,20 @@ serve(async (req) => {
     }
 
     const subscription = subscriptions.data[0];
-    const productId = subscription.items.data[0].price.product as string;
+    const subscriptionItem = subscription.items.data[0];
+    const productId = subscriptionItem.price.product as string;
     
-    // Safely convert the period end timestamp
+    logStep("Raw subscription data", { 
+      subscriptionId: subscription.id,
+      subCurrentPeriodEnd: subscription.current_period_end,
+      itemCurrentPeriodEnd: (subscriptionItem as any).current_period_end,
+    });
+    
+    // Get period end from subscription or fall back to item
     let subscriptionEnd: string | null = null;
     try {
-      const periodEnd = subscription.current_period_end;
+      // Try subscription level first, then item level
+      const periodEnd = subscription.current_period_end || (subscriptionItem as any).current_period_end;
       if (periodEnd && typeof periodEnd === 'number') {
         subscriptionEnd = new Date(periodEnd * 1000).toISOString();
       }
