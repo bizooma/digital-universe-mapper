@@ -17,7 +17,7 @@ const plans = [
     description: "Perfect for getting started",
     features: [
       "1 map",
-      "Up to 10 nodes per map",
+      "Up to 5 nodes per map",
       "PNG export",
       "Basic support",
       "LinkScape watermark",
