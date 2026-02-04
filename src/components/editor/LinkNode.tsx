@@ -260,6 +260,7 @@ function HubNode({ data, selected, id }: NodeProps) {
       style={{ 
         boxShadow: "0 0 40px -5px hsl(var(--primary) / 0.5)"
       }}
+      data-onboarding="hub-node"
     >
       {/* Hub node has both source and target handles on all sides */}
       <Handle
