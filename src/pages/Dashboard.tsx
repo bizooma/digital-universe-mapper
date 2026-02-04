@@ -13,7 +13,9 @@ import {
   List,
   Crown,
   CreditCard,
-  Lock
+  Lock,
+  Loader2,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -21,27 +23,82 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UpgradeCard } from "@/components/dashboard/UpgradeCard";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import type { Node, Edge } from "@xyflow/react";
 
-// Empty maps array - in production this would come from the database
-const userMaps: {
+interface UserMap {
   id: string;
   name: string;
-  nodes: number;
-  connections: number;
-  lastEdited: string;
-  thumbnail: string;
-}[] = [];
+  nodes: Node[];
+  edges: Edge[];
+  created_at: string;
+  updated_at: string;
+}
 
 export default function Dashboard() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchParams] = useSearchParams();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [userMaps, setUserMaps] = useState<UserMap[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [mapToDelete, setMapToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { user, signOut } = useAuth();
   const { plan, isPro, isFreeTier, limits, canCreateMap, checkSubscription, openCustomerPortal } = useSubscription();
   const [portalLoading, setPortalLoading] = useState(false);
 
-  // Current map count - in production this would come from the database
+  // Fetch user's maps from database
+  useEffect(() => {
+    const fetchMaps = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from("maps")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("updated_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching maps:", error);
+          toast.error("Failed to load maps");
+        } else {
+          setUserMaps((data || []).map(map => ({
+            ...map,
+            nodes: (map.nodes as unknown) as Node[],
+            edges: (map.edges as unknown) as Edge[],
+          })));
+        }
+      } catch (err) {
+        console.error("Error fetching maps:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMaps();
+  }, [user]);
+
   const currentMapCount = userMaps.length;
 
   // Check for upgrade success/cancel from URL params
@@ -81,14 +138,77 @@ export default function Dashboard() {
     // Navigate to new map - this will be handled by the Link component
   };
 
+  const handleDeleteMap = async () => {
+    if (!mapToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("maps")
+        .delete()
+        .eq("id", mapToDelete);
+
+      if (error) throw error;
+      
+      setUserMaps(maps => maps.filter(m => m.id !== mapToDelete));
+      toast.success("Map deleted successfully");
+    } catch (err) {
+      console.error("Error deleting map:", err);
+      toast.error("Failed to delete map");
+    } finally {
+      setIsDeleting(false);
+      setMapToDelete(null);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
   const planLabel = plan === "team" ? "Team Plan" : plan === "pro" ? "Pro Plan" : "Free Plan";
   const canCreate = canCreateMap(currentMapCount);
 
+  const totalNodes = userMaps.reduce((sum, m) => sum + (m.nodes?.length || 0), 0);
+  const totalConnections = userMaps.reduce((sum, m) => sum + (m.edges?.length || 0), 0);
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!mapToDelete} onOpenChange={(open) => !open && setMapToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Map</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this map? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteMap} 
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Upgrade Dialog */}
       <UpgradeLimitDialog
         open={showUpgradeDialog}
@@ -258,8 +378,8 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
               {[
                 { label: "Total Maps", value: String(currentMapCount), icon: Map },
-                { label: "Total Nodes", value: String(userMaps.reduce((sum, m) => sum + m.nodes, 0)), icon: GitBranch },
-                { label: "Last Edited", value: userMaps[0]?.lastEdited || "Never", icon: Clock },
+                { label: "Total Nodes", value: String(totalNodes), icon: GitBranch },
+                { label: "Last Edited", value: userMaps[0] ? formatDate(userMaps[0].updated_at) : "Never", icon: Clock },
               ].map((stat) => (
                 <motion.div
                   key={stat.label}
@@ -315,8 +435,19 @@ export default function Dashboard() {
               )}
             </motion.div>
 
+            {/* Loading State */}
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="col-span-full flex items-center justify-center py-12"
+              >
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </motion.div>
+            )}
+
             {/* Existing Maps */}
-            {userMaps.map((map, index) => (
+            {!isLoading && userMaps.map((map, index) => (
               <motion.div
                 key={map.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -329,7 +460,7 @@ export default function Dashboard() {
                 >
                   <div className="h-full rounded-xl bg-card border border-border hover:border-primary/50 transition-all overflow-hidden">
                     {/* Thumbnail */}
-                    <div className="h-32 bg-secondary relative canvas-grid">
+                    <div className="h-32 bg-secondary relative canvas-dots">
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="flex gap-2">
                           <div className="w-16 h-8 rounded-lg bg-primary/80" />
@@ -341,25 +472,38 @@ export default function Dashboard() {
                     {/* Info */}
                     <div className="p-4">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                        <h3 className="font-medium text-foreground group-hover:text-primary transition-colors truncate flex-1 mr-2">
                           {map.name}
                         </h3>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            // TODO: Open menu
-                          }}
-                          className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              onClick={(e) => e.preventDefault()}
+                              className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-card">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setMapToDelete(map.id);
+                              }}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{map.nodes} nodes</span>
-                        <span>{map.connections} connections</span>
+                        <span>{map.nodes?.length || 0} nodes</span>
+                        <span>{map.edges?.length || 0} connections</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
-                        Edited {map.lastEdited}
+                        Edited {formatDate(map.updated_at)}
                       </p>
                     </div>
                   </div>
