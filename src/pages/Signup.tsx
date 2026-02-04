@@ -29,8 +29,8 @@ export default function Signup() {
       return;
     }
 
-    toast.success("Check your email to confirm your account!");
-    navigate("/login");
+    toast.success("Account created! Taking you to your dashboard...");
+    navigate("/dashboard");
   };
 
   return (
