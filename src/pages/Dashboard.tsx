@@ -23,17 +23,15 @@ import { UpgradeCard } from "@/components/dashboard/UpgradeCard";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
 import { toast } from "sonner";
 
-// Mock data for demo - in production this would come from the database
-const mockMaps = [
-  {
-    id: "1",
-    name: "Personal Brand",
-    nodes: 12,
-    connections: 15,
-    lastEdited: "2 hours ago",
-    thumbnail: "personal",
-  },
-];
+// Empty maps array - in production this would come from the database
+const userMaps: {
+  id: string;
+  name: string;
+  nodes: number;
+  connections: number;
+  lastEdited: string;
+  thumbnail: string;
+}[] = [];
 
 export default function Dashboard() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -44,7 +42,7 @@ export default function Dashboard() {
   const [portalLoading, setPortalLoading] = useState(false);
 
   // Current map count - in production this would come from the database
-  const currentMapCount = mockMaps.length;
+  const currentMapCount = userMaps.length;
 
   // Check for upgrade success/cancel from URL params
   useEffect(() => {
@@ -255,31 +253,33 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            {[
-              { label: "Total Maps", value: String(currentMapCount), icon: Map },
-              { label: "Total Nodes", value: "12", icon: GitBranch },
-              { label: "Last Edited", value: "2h ago", icon: Clock },
-            ].map((stat) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-4 rounded-xl bg-card border border-border"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <stat.icon className="h-5 w-5 text-primary" />
+          {/* Stats - only show if user has maps */}
+          {userMaps.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              {[
+                { label: "Total Maps", value: String(currentMapCount), icon: Map },
+                { label: "Total Nodes", value: String(userMaps.reduce((sum, m) => sum + m.nodes, 0)), icon: GitBranch },
+                { label: "Last Edited", value: userMaps[0]?.lastEdited || "Never", icon: Clock },
+              ].map((stat) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-xl bg-card border border-border"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <stat.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                      <p className="text-sm text-muted-foreground">{stat.label}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                    <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
 
           {/* Maps Grid */}
           <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
@@ -316,7 +316,7 @@ export default function Dashboard() {
             </motion.div>
 
             {/* Existing Maps */}
-            {mockMaps.map((map, index) => (
+            {userMaps.map((map, index) => (
               <motion.div
                 key={map.id}
                 initial={{ opacity: 0, y: 20 }}

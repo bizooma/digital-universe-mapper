@@ -38,44 +38,38 @@ import { AddNodePanel } from "@/components/editor/AddNodePanel";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 
-// Initial demo nodes
-const initialNodes: Node[] = [
-  {
-    id: "hub",
-    type: "hubNode",
-    position: { x: 400, y: 200 },
-    data: { label: "mysite.com", url: "https://mysite.com", category: "website" },
-  },
-  {
-    id: "twitter",
-    type: "linkNode",
-    position: { x: 150, y: 100 },
-    data: { label: "@username", url: "https://twitter.com/username", category: "social", platform: "twitter" },
-  },
-  {
-    id: "instagram",
-    type: "linkNode",
-    position: { x: 650, y: 80 },
-    data: { label: "@username", url: "https://instagram.com/username", category: "social", platform: "instagram" },
-  },
-  {
-    id: "youtube",
-    type: "linkNode",
-    position: { x: 100, y: 320 },
-    data: { label: "My Channel", url: "https://youtube.com/@channel", category: "content", platform: "youtube" },
-  },
-];
+// Start with empty canvas - just a central hub node for new maps
+const getInitialNodes = (isNewMap: boolean): Node[] => {
+  if (isNewMap) {
+    return [
+      {
+        id: "hub",
+        type: "hubNode",
+        position: { x: 400, y: 200 },
+        data: { label: "My Brand", url: "https://", category: "website" },
+      },
+    ];
+  }
+  // For existing maps, this would be loaded from database
+  return [
+    {
+      id: "hub",
+      type: "hubNode",
+      position: { x: 400, y: 200 },
+      data: { label: "My Brand", url: "https://", category: "website" },
+    },
+  ];
+};
 
-const initialEdges: Edge[] = [
-  { id: "e-hub-twitter", source: "hub", target: "twitter", animated: true },
-  { id: "e-hub-instagram", source: "hub", target: "instagram", animated: true },
-  { id: "e-hub-youtube", source: "hub", target: "youtube", animated: true },
-];
+const getInitialEdges = (): Edge[] => {
+  return [];
+};
 
 export default function MapEditor() {
   const { id } = useParams();
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const isNewMap = id === "new";
+  const [nodes, setNodes, onNodesChange] = useNodesState(getInitialNodes(isNewMap));
+  const [edges, setEdges, onEdgesChange] = useEdgesState(getInitialEdges());
   const [isAddPanelOpen, setIsAddPanelOpen] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [backgroundVariant, setBackgroundVariant] = useState<"dots" | "lines" | "cross">("dots");
