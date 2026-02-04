@@ -35,7 +35,7 @@ const plans = [
       "Priority support",
       "Custom themes",
     ],
-    cta: "Start Free Trial",
+    cta: "Get Started",
     ctaVariant: "hero" as const,
     popular: true,
   },

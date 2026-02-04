@@ -30,7 +30,7 @@ export function CTASection() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="hero" size="xl" asChild>
               <Link to="/signup">
-                Start free trial
+                Get Started Free
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </Button>
@@ -39,7 +39,7 @@ export function CTASection() {
             </Button>
           </div>
           <p className="mt-6 text-sm text-muted-foreground">
-            14-day free trial · No credit card required
+            Free plan available · No credit card required
           </p>
         </motion.div>
       </div>
