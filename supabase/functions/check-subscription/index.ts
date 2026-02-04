@@ -87,7 +87,17 @@ serve(async (req) => {
 
     const subscription = subscriptions.data[0];
     const productId = subscription.items.data[0].price.product as string;
-    const subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+    
+    // Safely convert the period end timestamp
+    let subscriptionEnd: string | null = null;
+    try {
+      const periodEnd = subscription.current_period_end;
+      if (periodEnd && typeof periodEnd === 'number') {
+        subscriptionEnd = new Date(periodEnd * 1000).toISOString();
+      }
+    } catch (e) {
+      logStep("Warning: Could not parse subscription end date", { error: String(e) });
+    }
     
     logStep("Active subscription found", { subscriptionId: subscription.id, productId, endDate: subscriptionEnd });
 
