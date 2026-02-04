@@ -64,6 +64,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -107,6 +109,8 @@ function MapEditorInner() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(!isNewMap);
   const [mapId, setMapId] = useState<string | null>(isNewMap ? null : id || null);
+  const [isPublic, setIsPublic] = useState(false);
+  const [isTogglingPublic, setIsTogglingPublic] = useState(false);
   
   // Auto-save state
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
@@ -152,6 +156,7 @@ function MapEditorInner() {
           setNodes(loadedNodes);
           setEdges(loadedEdges);
           setMapId(data.id);
+          setIsPublic(data.is_public || false);
           
           // Initialize history with loaded state
           resetHistory(loadedNodes, loadedEdges);
@@ -588,25 +593,109 @@ function MapEditorInner() {
           <DialogHeader>
             <DialogTitle>Share your map</DialogTitle>
             <DialogDescription>
-              Anyone with this link can view your map.
+              {isPublic 
+                ? "Anyone with this link can view your map."
+                : "Make your map public to share it with others."}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex items-center gap-2">
-            <Input
-              readOnly
-              value={shareUrl}
-              className="flex-1"
+          
+          {/* Public/Private Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 border border-border">
+            <div className="space-y-0.5">
+              <Label htmlFor="public-toggle" className="text-base font-medium">
+                Public Map
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {isPublic ? "Anyone can view this map" : "Only you can see this map"}
+              </p>
+            </div>
+            <Switch
+              id="public-toggle"
+              checked={isPublic}
+              disabled={!mapId || isTogglingPublic}
+              onCheckedChange={async (checked) => {
+                if (!mapId) {
+                  toast.error("Save your map first to enable sharing");
+                  return;
+                }
+                
+                setIsTogglingPublic(true);
+                try {
+                  const { error } = await supabase
+                    .from("maps")
+                    .update({ is_public: checked })
+                    .eq("id", mapId);
+                    
+                  if (error) throw error;
+                  
+                  setIsPublic(checked);
+                  toast.success(checked ? "Map is now public!" : "Map is now private");
+                } catch (err) {
+                  console.error("Error updating visibility:", err);
+                  toast.error("Failed to update visibility");
+                } finally {
+                  setIsTogglingPublic(false);
+                }
+              }}
             />
-            <Button onClick={handleCopyLink} size="icon" variant="outline">
-              {copied ? (
-                <Check className="h-4 w-4 text-green-500" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </Button>
           </div>
-          {isFreeTier && (
-            <p className="text-xs text-muted-foreground mt-2">
+          
+          {/* Share URL */}
+          {isPublic && (
+            <>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={shareUrl}
+                  className="flex-1"
+                />
+                <Button onClick={handleCopyLink} size="icon" variant="outline">
+                  {copied ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              
+              {/* Social sharing buttons */}
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    window.open(
+                      `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out my digital presence map "${mapName}" on LinkScape!`)}`,
+                      "_blank"
+                    );
+                  }}
+                >
+                  Share on X
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    window.open(
+                      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+                      "_blank"
+                    );
+                  }}
+                >
+                  Share on LinkedIn
+                </Button>
+              </div>
+            </>
+          )}
+          
+          {!mapId && (
+            <p className="text-xs text-muted-foreground">
+              Save your map first to enable sharing.
+            </p>
+          )}
+          
+          {isFreeTier && mapId && (
+            <p className="text-xs text-muted-foreground">
               <Crown className="h-3 w-3 inline mr-1" />
               Upgrade to Pro for a custom shareable URL
             </p>

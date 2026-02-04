@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           edges: Json
           id: string
+          is_public: boolean
           name: string
           nodes: Json
           updated_at: string
@@ -28,6 +29,7 @@ export type Database = {
           created_at?: string
           edges?: Json
           id?: string
+          is_public?: boolean
           name?: string
           nodes?: Json
           updated_at?: string
@@ -37,6 +39,7 @@ export type Database = {
           created_at?: string
           edges?: Json
           id?: string
+          is_public?: boolean
           name?: string
           nodes?: Json
           updated_at?: string
