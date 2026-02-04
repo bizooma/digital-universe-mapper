@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import SharedMaps from "./pages/SharedMaps";
 import MapEditor from "./pages/MapEditor";
 import PublicMapView from "./pages/PublicMapView";
 import Analytics from "./pages/Analytics";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/shared" element={<ProtectedRoute><SharedMaps /></ProtectedRoute>} />
             <Route path="/editor/:id" element={<ProtectedRoute><MapEditor /></ProtectedRoute>} />
             <Route path="/view/:id" element={<PublicMapView />} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
