@@ -132,7 +132,7 @@ export default function MapEditor() {
   };
 
   return (
-    <div className="h-screen w-screen bg-background dark flex flex-col">
+    <div className="h-screen w-screen bg-background flex flex-col">
       {/* Top Toolbar */}
       <header className="h-14 bg-card/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-4 z-20">
         <div className="flex items-center gap-4">

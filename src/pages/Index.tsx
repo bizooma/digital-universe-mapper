@@ -7,7 +7,7 @@ import { CTASection } from "@/components/landing/CTASection";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background dark">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main>
         <HeroSection />
