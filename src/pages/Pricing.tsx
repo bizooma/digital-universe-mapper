@@ -1,10 +1,13 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Check, ArrowRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Check, ArrowRight, Crown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription, PriceKey } from "@/hooks/useSubscription";
+import { toast } from "sonner";
 
 const plans = [
   {
@@ -24,8 +27,8 @@ const plans = [
       "PDF export",
       "Priority support",
     ],
-    cta: "Get Started Free",
-    ctaVariant: "outline" as const,
+    priceKeyMonthly: null,
+    priceKeyYearly: null,
     popular: false,
   },
   {
@@ -44,8 +47,8 @@ const plans = [
       "Analytics dashboard",
     ],
     notIncluded: [],
-    cta: "Get Started",
-    ctaVariant: "hero" as const,
+    priceKeyMonthly: "pro_monthly" as PriceKey,
+    priceKeyYearly: "pro_yearly" as PriceKey,
     popular: true,
   },
   {
@@ -64,8 +67,8 @@ const plans = [
       "Dedicated support",
     ],
     notIncluded: [],
-    cta: "Contact Sales",
-    ctaVariant: "outline" as const,
+    priceKeyMonthly: "team_monthly" as PriceKey,
+    priceKeyYearly: "team_yearly" as PriceKey,
     popular: false,
   },
 ];
@@ -99,6 +102,109 @@ const faqs = [
 
 export default function Pricing() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const { user } = useAuth();
+  const { plan: currentPlan, createCheckout, openCustomerPortal, isPro } = useSubscription();
+  const navigate = useNavigate();
+
+  const handlePlanClick = async (planName: string, priceKey: PriceKey | null) => {
+    // Free plan - redirect to signup
+    if (!priceKey) {
+      if (user) {
+        navigate("/dashboard");
+      } else {
+        navigate("/signup");
+      }
+      return;
+    }
+
+    // Paid plan - need to be logged in
+    if (!user) {
+      toast.info("Please sign up first to subscribe to a paid plan.");
+      navigate("/signup");
+      return;
+    }
+
+    // Already on a plan - open portal to manage
+    if (isPro) {
+      setLoadingPlan(planName);
+      try {
+        const url = await openCustomerPortal();
+        if (url) {
+          window.open(url, "_blank");
+        }
+      } catch {
+        toast.error("Failed to open billing portal. Please try again.");
+      } finally {
+        setLoadingPlan(null);
+      }
+      return;
+    }
+
+    // Start checkout
+    setLoadingPlan(planName);
+    try {
+      const url = await createCheckout(priceKey);
+      if (url) {
+        window.open(url, "_blank");
+      }
+    } catch {
+      toast.error("Failed to start checkout. Please try again.");
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
+  const getButtonText = (planName: string, priceKey: PriceKey | null) => {
+    const planLower = planName.toLowerCase();
+    
+    if (loadingPlan === planName) {
+      return (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading...
+        </>
+      );
+    }
+
+    // Current plan
+    if (currentPlan === planLower) {
+      return (
+        <>
+          <Crown className="h-4 w-4" />
+          Current Plan
+        </>
+      );
+    }
+
+    // Free plan
+    if (!priceKey) {
+      return user ? "Go to Dashboard" : "Get Started Free";
+    }
+
+    // User is on a paid plan - show manage
+    if (isPro) {
+      return "Manage Subscription";
+    }
+
+    // User is on free - show upgrade
+    return (
+      <>
+        Get Started
+        <ArrowRight className="h-4 w-4 ml-2" />
+      </>
+    );
+  };
+
+  const getButtonVariant = (planName: string, isPopular: boolean) => {
+    const planLower = planName.toLowerCase();
+    
+    if (currentPlan === planLower) {
+      return "outline" as const;
+    }
+    
+    return isPopular ? "hero" as const : "outline" as const;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -167,65 +273,78 @@ export default function Pricing() {
         <section className="py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {plans.map((plan, index) => (
-                <motion.div
-                  key={plan.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + index * 0.1 }}
-                  className={`relative rounded-2xl ${
-                    plan.popular
-                      ? "bg-gradient-to-b from-primary/10 to-transparent border-2 border-primary"
-                      : "bg-card border border-border"
-                  }`}
-                >
-                  {plan.popular && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                      <span className="bg-gradient-primary text-primary-foreground text-sm font-medium px-4 py-1 rounded-full">
-                        Most Popular
-                      </span>
+              {plans.map((plan, index) => {
+                const priceKey = billingCycle === "yearly" ? plan.priceKeyYearly : plan.priceKeyMonthly;
+                const isCurrentPlan = currentPlan === plan.name.toLowerCase();
+                
+                return (
+                  <motion.div
+                    key={plan.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + index * 0.1 }}
+                    className={`relative rounded-2xl ${
+                      plan.popular
+                        ? "bg-gradient-to-b from-primary/10 to-transparent border-2 border-primary"
+                        : isCurrentPlan
+                        ? "bg-card border-2 border-primary/50"
+                        : "bg-card border border-border"
+                    }`}
+                  >
+                    {plan.popular && (
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                        <span className="bg-gradient-primary text-primary-foreground text-sm font-medium px-4 py-1 rounded-full">
+                          Most Popular
+                        </span>
+                      </div>
+                    )}
+
+                    {isCurrentPlan && !plan.popular && (
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                        <span className="bg-secondary text-foreground text-sm font-medium px-4 py-1 rounded-full border border-border">
+                          Your Plan
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="p-8">
+                      <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
+                      <p className="text-muted-foreground text-sm mt-1">{plan.description}</p>
+                      
+                      <div className="mt-6">
+                        <span className="text-5xl font-bold text-foreground">
+                          ${billingCycle === "monthly" ? plan.monthlyPrice : Math.round(plan.yearlyPrice / 12)}
+                        </span>
+                        <span className="text-muted-foreground">/month</span>
+                        {billingCycle === "yearly" && plan.yearlyPrice > 0 && (
+                          <p className="text-sm text-primary mt-2">
+                            ${plan.yearlyPrice}/year · Save ${plan.monthlyPrice * 12 - plan.yearlyPrice}
+                          </p>
+                        )}
+                      </div>
+
+                      <ul className="mt-8 space-y-4">
+                        {plan.features.map((feature) => (
+                          <li key={feature} className="flex items-start gap-3">
+                            <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                            <span className="text-foreground text-sm">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Button
+                        variant={getButtonVariant(plan.name, plan.popular)}
+                        className="w-full mt-8"
+                        size="lg"
+                        onClick={() => handlePlanClick(plan.name, priceKey)}
+                        disabled={loadingPlan === plan.name || isCurrentPlan}
+                      >
+                        {getButtonText(plan.name, priceKey)}
+                      </Button>
                     </div>
-                  )}
-
-                  <div className="p-8">
-                    <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
-                    <p className="text-muted-foreground text-sm mt-1">{plan.description}</p>
-                    
-                    <div className="mt-6">
-                      <span className="text-5xl font-bold text-foreground">
-                        ${billingCycle === "monthly" ? plan.monthlyPrice : Math.round(plan.yearlyPrice / 12)}
-                      </span>
-                      <span className="text-muted-foreground">/month</span>
-                      {billingCycle === "yearly" && plan.yearlyPrice > 0 && (
-                        <p className="text-sm text-primary mt-2">
-                          ${plan.yearlyPrice}/year · Save ${plan.monthlyPrice * 12 - plan.yearlyPrice}
-                        </p>
-                      )}
-                    </div>
-
-                    <ul className="mt-8 space-y-4">
-                      {plan.features.map((feature) => (
-                        <li key={feature} className="flex items-start gap-3">
-                          <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                          <span className="text-foreground text-sm">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <Button
-                      variant={plan.ctaVariant}
-                      className="w-full mt-8"
-                      size="lg"
-                      asChild
-                    >
-                      <Link to="/signup">
-                        {plan.cta}
-                        <ArrowRight className="h-4 w-4 ml-2" />
-                      </Link>
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </section>

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Plus, 
@@ -10,10 +10,16 @@ import {
   Clock,
   MoreHorizontal,
   Grid,
-  List
+  List,
+  Crown,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradeCard } from "@/components/dashboard/UpgradeCard";
+import { toast } from "sonner";
 
 // Mock data for demo
 const mockMaps = [
@@ -45,11 +51,49 @@ const mockMaps = [
 
 export default function Dashboard() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchParams] = useSearchParams();
+  const { user, signOut } = useAuth();
+  const { plan, isPro, isFreeTier, loading: subLoading, checkSubscription, openCustomerPortal } = useSubscription();
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  // Check for upgrade success/cancel from URL params
+  useEffect(() => {
+    const upgradeStatus = searchParams.get("upgrade");
+    if (upgradeStatus === "success") {
+      toast.success("Welcome to Pro! Your subscription is now active.");
+      checkSubscription();
+    } else if (upgradeStatus === "canceled") {
+      toast.info("Checkout was canceled. You can upgrade anytime.");
+    }
+  }, [searchParams, checkSubscription]);
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const url = await openCustomerPortal();
+      if (url) {
+        window.open(url, "_blank");
+      }
+    } catch {
+      toast.error("Failed to open billing portal. Please try again.");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
+  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
+  const initials = displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+
+  const planLabel = plan === "team" ? "Team Plan" : plan === "pro" ? "Pro Plan" : "Free Plan";
 
   return (
     <div className="min-h-screen bg-background">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border z-40 hidden lg:block">
+      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border z-40 hidden lg:flex lg:flex-col">
         <div className="p-6">
           <Link to="/" className="flex items-center gap-2 mb-8">
             <div className="bg-gradient-primary p-2 rounded-lg">
@@ -66,7 +110,7 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        <nav className="px-3">
+        <nav className="px-3 flex-1">
           <div className="space-y-1">
             <Link
               to="/dashboard"
@@ -83,16 +127,26 @@ export default function Dashboard() {
               Shared with me
             </Link>
           </div>
+
+          {/* Upgrade Card - only show for free tier */}
+          {isFreeTier && (
+            <div className="mt-6">
+              <UpgradeCard />
+            </div>
+          )}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
+        <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-medium">
-              JD
+              {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">John Doe</p>
-              <p className="text-xs text-muted-foreground truncate">Free Plan</p>
+              <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
+              <div className="flex items-center gap-1.5">
+                {isPro && <Crown className="h-3 w-3 text-primary" />}
+                <p className="text-xs text-muted-foreground truncate">{planLabel}</p>
+              </div>
             </div>
           </div>
           <div className="flex gap-2">
@@ -101,7 +155,18 @@ export default function Dashboard() {
                 <Settings className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" className="flex-1">
+            {isPro && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex-1"
+                onClick={handleManageSubscription}
+                disabled={portalLoading}
+              >
+                <CreditCard className="h-4 w-4" />
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" className="flex-1" onClick={handleSignOut}>
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
