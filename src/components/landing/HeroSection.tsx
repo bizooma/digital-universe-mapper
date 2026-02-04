@@ -12,8 +12,8 @@ export function HeroSection() {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroBackground})` }}
       />
-      {/* Overlay for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background" />
+      {/* Subtle overlay for depth */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-background/90" />
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
@@ -22,10 +22,10 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8"
           >
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">Now in public beta</span>
+            <Sparkles className="h-4 w-4 text-white" />
+            <span className="text-sm font-medium text-white">Now in public beta</span>
           </motion.div>
 
           {/* Headline */}
@@ -35,9 +35,9 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6"
           >
-            <span className="text-foreground">Map your</span>
+            <span className="text-white">Map your</span>
             <br />
-            <span className="text-gradient-primary">digital universe</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-400">digital universe</span>
           </motion.h1>
 
           {/* Subheadline */}
@@ -45,7 +45,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
+            className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-10"
           >
             Visualize your entire online presence in one beautiful, interactive flowchart. 
             Connect your websites, social media, and digital properties like never before.
@@ -74,13 +74,13 @@ export function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-muted-foreground"
+            className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-white/70"
           >
             <div className="flex -space-x-2">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
-                  className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/80 to-accent/80 border-2 border-background flex items-center justify-center text-xs font-medium text-primary-foreground"
+                  className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 border-2 border-white/20 flex items-center justify-center text-xs font-medium text-white"
                 >
                   {String.fromCharCode(64 + i)}
                 </div>
