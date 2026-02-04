@@ -12,6 +12,22 @@ interface SubscriptionState {
   error: string | null;
 }
 
+// Plan limits
+export const PLAN_LIMITS = {
+  free: {
+    maxMaps: 1,
+    maxNodesPerMap: 5,
+  },
+  pro: {
+    maxMaps: Infinity,
+    maxNodesPerMap: Infinity,
+  },
+  team: {
+    maxMaps: Infinity,
+    maxNodesPerMap: Infinity,
+  },
+} as const;
+
 // Price keys for checkout
 export const PRICE_KEYS = {
   pro_monthly: "pro_monthly",
@@ -23,7 +39,7 @@ export const PRICE_KEYS = {
 export type PriceKey = keyof typeof PRICE_KEYS;
 
 export function useSubscription() {
-  const { user, session } = useAuth();
+  const { session } = useAuth();
   const [state, setState] = useState<SubscriptionState>({
     plan: "free",
     subscribed: false,
@@ -109,11 +125,16 @@ export function useSubscription() {
     }
   };
 
+  const limits = PLAN_LIMITS[state.plan];
+
   return {
     ...state,
     isPro: state.plan === "pro" || state.plan === "team",
     isTeam: state.plan === "team",
     isFreeTier: state.plan === "free",
+    limits,
+    canCreateMap: (currentMapCount: number) => currentMapCount < limits.maxMaps,
+    canAddNode: (currentNodeCount: number) => currentNodeCount < limits.maxNodesPerMap,
     checkSubscription,
     createCheckout,
     openCustomerPortal,

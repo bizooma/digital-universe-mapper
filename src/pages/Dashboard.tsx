@@ -12,16 +12,18 @@ import {
   Grid,
   List,
   Crown,
-  CreditCard
+  CreditCard,
+  Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UpgradeCard } from "@/components/dashboard/UpgradeCard";
+import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
 import { toast } from "sonner";
 
-// Mock data for demo
+// Mock data for demo - in production this would come from the database
 const mockMaps = [
   {
     id: "1",
@@ -31,30 +33,18 @@ const mockMaps = [
     lastEdited: "2 hours ago",
     thumbnail: "personal",
   },
-  {
-    id: "2",
-    name: "Business Portfolio",
-    nodes: 8,
-    connections: 10,
-    lastEdited: "Yesterday",
-    thumbnail: "business",
-  },
-  {
-    id: "3",
-    name: "Side Project",
-    nodes: 5,
-    connections: 6,
-    lastEdited: "3 days ago",
-    thumbnail: "project",
-  },
 ];
 
 export default function Dashboard() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchParams] = useSearchParams();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const { user, signOut } = useAuth();
-  const { plan, isPro, isFreeTier, loading: subLoading, checkSubscription, openCustomerPortal } = useSubscription();
+  const { plan, isPro, isFreeTier, limits, canCreateMap, checkSubscription, openCustomerPortal } = useSubscription();
   const [portalLoading, setPortalLoading] = useState(false);
+
+  // Current map count - in production this would come from the database
+  const currentMapCount = mockMaps.length;
 
   // Check for upgrade success/cancel from URL params
   useEffect(() => {
@@ -85,13 +75,31 @@ export default function Dashboard() {
     }
   };
 
+  const handleCreateMap = () => {
+    if (!canCreateMap(currentMapCount)) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+    // Navigate to new map - this will be handled by the Link component
+  };
+
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
   const planLabel = plan === "team" ? "Team Plan" : plan === "pro" ? "Pro Plan" : "Free Plan";
+  const canCreate = canCreateMap(currentMapCount);
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Upgrade Dialog */}
+      <UpgradeLimitDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        limitType="maps"
+        currentCount={currentMapCount}
+        maxCount={limits.maxMaps}
+      />
+
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border z-40 hidden lg:flex lg:flex-col">
         <div className="p-6">
@@ -102,12 +110,19 @@ export default function Dashboard() {
             <span className="text-xl font-bold text-foreground">LinkScape</span>
           </Link>
 
-          <Button variant="hero" className="w-full" asChild>
-            <Link to="/editor/new">
-              <Plus className="h-4 w-4" />
+          {canCreate ? (
+            <Button variant="hero" className="w-full" asChild>
+              <Link to="/editor/new">
+                <Plus className="h-4 w-4" />
+                New Map
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="hero" className="w-full" onClick={handleCreateMap}>
+              <Lock className="h-4 w-4" />
               New Map
-            </Link>
-          </Button>
+            </Button>
+          )}
         </div>
 
         <nav className="px-3 flex-1">
@@ -184,12 +199,19 @@ export default function Dashboard() {
               </div>
               <span className="font-bold text-foreground">LinkScape</span>
             </Link>
-            <Button variant="hero" size="sm" asChild>
-              <Link to="/editor/new">
-                <Plus className="h-4 w-4" />
+            {canCreate ? (
+              <Button variant="hero" size="sm" asChild>
+                <Link to="/editor/new">
+                  <Plus className="h-4 w-4" />
+                  New
+                </Link>
+              </Button>
+            ) : (
+              <Button variant="hero" size="sm" onClick={handleCreateMap}>
+                <Lock className="h-4 w-4" />
                 New
-              </Link>
-            </Button>
+              </Button>
+            )}
           </div>
         </header>
 
@@ -200,6 +222,11 @@ export default function Dashboard() {
               <h1 className="text-2xl font-bold text-foreground">My Maps</h1>
               <p className="text-muted-foreground">
                 Create and manage your digital presence maps
+                {isFreeTier && (
+                  <span className="ml-2 text-xs bg-secondary px-2 py-0.5 rounded-full">
+                    {currentMapCount}/{limits.maxMaps} maps
+                  </span>
+                )}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -231,8 +258,8 @@ export default function Dashboard() {
           {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             {[
-              { label: "Total Maps", value: "3", icon: Map },
-              { label: "Total Nodes", value: "25", icon: GitBranch },
+              { label: "Total Maps", value: String(currentMapCount), icon: Map },
+              { label: "Total Nodes", value: "12", icon: GitBranch },
               { label: "Last Edited", value: "2h ago", icon: Clock },
             ].map((stat) => (
               <motion.div
@@ -261,20 +288,31 @@ export default function Dashboard() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
             >
-              <Link
-                to="/editor/new"
-                className="group block h-full"
-              >
-                <div className="h-full rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors p-8 flex flex-col items-center justify-center text-center min-h-[200px]">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                    <Plus className="h-6 w-6 text-primary" />
+              {canCreate ? (
+                <Link to="/editor/new" className="group block h-full">
+                  <div className="h-full rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors p-8 flex flex-col items-center justify-center text-center min-h-[200px]">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                      <Plus className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="font-medium text-foreground mb-1">Create New Map</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Start mapping your digital presence
+                    </p>
                   </div>
-                  <h3 className="font-medium text-foreground mb-1">Create New Map</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Start mapping your digital presence
-                  </p>
-                </div>
-              </Link>
+                </Link>
+              ) : (
+                <button onClick={handleCreateMap} className="group block h-full w-full text-left">
+                  <div className="h-full rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors p-8 flex flex-col items-center justify-center text-center min-h-[200px]">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                      <Lock className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="font-medium text-foreground mb-1">Create New Map</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Upgrade to Pro to create more maps
+                    </p>
+                  </div>
+                </button>
+              )}
             </motion.div>
 
             {/* Existing Maps */}
