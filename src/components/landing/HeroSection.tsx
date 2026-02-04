@@ -64,7 +64,7 @@ export function HeroSection() {
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </Button>
-            <Button variant="hero-outline" size="xl" asChild>
+            <Button variant="outline" size="xl" className="border-2 border-white/50 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:border-white/70" asChild>
               <Link to="/#features">See how it works</Link>
             </Button>
           </motion.div>
