@@ -121,6 +121,14 @@ function MapEditorInner() {
     [setEdges]
   );
 
+  const onEdgeClick = useCallback(
+    (_event: React.MouseEvent, edge: Edge) => {
+      setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+      toast.success("Connection removed");
+    },
+    [setEdges]
+  );
+
   const handleOpenAddPanel = () => {
     if (!canAddNode(nodes.length)) {
       setShowUpgradeDialog(true);
@@ -474,6 +482,7 @@ function MapEditorInner() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onEdgeClick={onEdgeClick}
           nodeTypes={nodeTypes}
           fitView
           className="bg-background"
@@ -481,6 +490,7 @@ function MapEditorInner() {
             style: { strokeWidth: 2, stroke: "hsl(var(--primary))" },
             animated: true,
           }}
+          edgesReconnectable
           proOptions={{ hideAttribution: true }}
         >
           <Background
