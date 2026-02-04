@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   ReactFlow,
   Controls,
@@ -49,6 +49,8 @@ import { nodeTypes, type NodeCategory } from "@/components/editor/LinkNode";
 import { AddNodePanel } from "@/components/editor/AddNodePanel";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -65,53 +67,88 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Start with empty canvas - just a central hub node for new maps
-const getInitialNodes = (isNewMap: boolean): Node[] => {
-  if (isNewMap) {
-    return [
-      {
-        id: "hub",
-        type: "hubNode",
-        position: { x: 400, y: 200 },
-        data: { label: "My Brand", url: "https://", category: "website" },
-      },
-    ];
-  }
-  // For existing maps, this would be loaded from database
-  return [
-    {
-      id: "hub",
-      type: "hubNode",
-      position: { x: 400, y: 200 },
-      data: { label: "My Brand", url: "https://", category: "website" },
-    },
-  ];
-};
-
-const getInitialEdges = (): Edge[] => {
-  return [];
-};
+// Default hub node for new maps
+const getDefaultNodes = (): Node[] => [
+  {
+    id: "hub",
+    type: "hubNode",
+    position: { x: 400, y: 200 },
+    data: { label: "My Brand", url: "https://", category: "website" },
+  },
+];
 
 function MapEditorInner() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const isNewMap = id === "new";
-  const [nodes, setNodes, onNodesChange] = useNodesState(getInitialNodes(isNewMap));
-  const [edges, setEdges, onEdgesChange] = useEdgesState(getInitialEdges());
+  const [nodes, setNodes, onNodesChange] = useNodesState(getDefaultNodes());
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [isAddPanelOpen, setIsAddPanelOpen] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [backgroundVariant, setBackgroundVariant] = useState<"dots" | "lines" | "cross">("dots");
   const nodeIdCounter = useRef(5);
-  const [mapName, setMapName] = useState(isNewMap ? "Untitled Map" : "Personal Brand");
+  const [mapName, setMapName] = useState("Untitled Map");
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(!isNewMap);
+  const [mapId, setMapId] = useState<string | null>(isNewMap ? null : id || null);
   
   const { isFreeTier, isPro, limits, canAddNode } = useSubscription();
+  const { user } = useAuth();
   const { getNodes } = useReactFlow();
 
-  // Generate a shareable URL (in production this would be a real permalink)
-  const shareUrl = `${window.location.origin}/view/${id || "new"}`;
+  // Load existing map from database
+  useEffect(() => {
+    const loadMap = async () => {
+      if (isNewMap || !id || id === "new") {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from("maps")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (error) {
+          console.error("Error loading map:", error);
+          toast.error("Failed to load map");
+          navigate("/dashboard");
+          return;
+        }
+
+        if (data) {
+          setMapName(data.name);
+          setNodes((data.nodes as unknown) as Node[]);
+          setEdges((data.edges as unknown) as Edge[]);
+          setMapId(data.id);
+          
+          // Update node counter based on existing nodes
+          const loadedNodes = (data.nodes as unknown) as Node[];
+          const maxNodeId = loadedNodes.reduce((max, node) => {
+            const match = node.id.match(/node-(\d+)/);
+            return match ? Math.max(max, parseInt(match[1])) : max;
+          }, 0);
+          nodeIdCounter.current = maxNodeId + 1;
+        }
+      } catch (err) {
+        console.error("Error loading map:", err);
+        toast.error("Failed to load map");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadMap();
+  }, [id, isNewMap, navigate, setNodes, setEdges]);
+
+  // Generate a shareable URL
+  const shareUrl = `${window.location.origin}/view/${mapId || "new"}`;
 
   const onConnect = useCallback(
     (params: Connection) =>
@@ -174,11 +211,62 @@ function MapEditorInner() {
     setBackgroundVariant(variants[(currentIndex + 1) % variants.length]);
   };
 
-  const handleSave = () => {
-    // In production, this would save to the database
-    toast.success("Map saved successfully!", {
-      description: `"${mapName}" has been saved.`,
-    });
+  const handleSave = async () => {
+    if (!user) {
+      toast.error("Please log in to save your map");
+      return;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      if (mapId) {
+        // Update existing map
+        const { error } = await supabase
+          .from("maps")
+          .update({
+            name: mapName,
+            nodes: JSON.parse(JSON.stringify(nodes)),
+            edges: JSON.parse(JSON.stringify(edges)),
+          })
+          .eq("id", mapId);
+
+        if (error) throw error;
+        
+        toast.success("Map saved successfully!", {
+          description: `"${mapName}" has been updated.`,
+        });
+      } else {
+        // Create new map
+        const { data, error } = await supabase
+          .from("maps")
+          .insert([{
+            user_id: user.id,
+            name: mapName,
+            nodes: JSON.parse(JSON.stringify(nodes)),
+            edges: JSON.parse(JSON.stringify(edges)),
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        
+        // Update URL to the new map ID without full reload
+        setMapId(data.id);
+        navigate(`/editor/${data.id}`, { replace: true });
+        
+        toast.success("Map saved successfully!", {
+          description: `"${mapName}" has been created.`,
+        });
+      }
+    } catch (err) {
+      console.error("Error saving map:", err);
+      toast.error("Failed to save map", {
+        description: "Please try again.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleShare = () => {
@@ -308,6 +396,18 @@ function MapEditorInner() {
   };
 
   const atNodeLimit = !canAddNode(nodes.length);
+
+  // Show loading state while loading map
+  if (isLoading) {
+    return (
+      <div className="h-screen w-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading map...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-screen bg-background flex flex-col">
@@ -467,9 +567,13 @@ function MapEditorInner() {
             <Share2 className="h-4 w-4 mr-2" />
             Share
           </Button>
-          <Button variant="hero" size="sm" onClick={handleSave}>
-            <Save className="h-4 w-4 mr-2" />
-            Save
+          <Button variant="hero" size="sm" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            {isSaving ? "Saving..." : "Save"}
           </Button>
         </div>
       </header>
