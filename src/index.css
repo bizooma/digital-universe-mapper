@@ -233,6 +233,37 @@
     background-size: 20px 20px;
     background-image: radial-gradient(circle, hsl(var(--border) / 0.5) 1px, transparent 1px);
   }
+
+  /* React Flow Handle Hover Effects */
+  .react-flow__handle {
+    transition: all 0.2s ease-out;
+  }
+
+  .react-flow__handle:hover {
+    transform: scale(1.5);
+    box-shadow: 0 0 12px 2px hsl(var(--primary) / 0.6);
+    background-color: hsl(var(--primary)) !important;
+    border-color: hsl(var(--primary-foreground)) !important;
+  }
+
+  .react-flow__handle.connecting {
+    animation: handle-pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes handle-pulse {
+    0%, 100% {
+      box-shadow: 0 0 8px 2px hsl(var(--accent) / 0.4);
+    }
+    50% {
+      box-shadow: 0 0 16px 4px hsl(var(--accent) / 0.7);
+    }
+  }
+
+  /* Show all handles on node hover */
+  .react-flow__node:hover .react-flow__handle {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
 }
 
 @layer utilities {
