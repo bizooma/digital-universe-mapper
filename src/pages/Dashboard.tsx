@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Plus, 
@@ -15,20 +15,27 @@ import {
   CreditCard,
   Lock,
   Loader2,
-  Trash2
+  Trash2,
+  Copy,
+  Pencil,
+  Check,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UpgradeCard } from "@/components/dashboard/UpgradeCard";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
+import { MapThumbnail } from "@/components/dashboard/MapThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -53,6 +60,7 @@ interface UserMap {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchParams] = useSearchParams();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
@@ -60,6 +68,10 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [mapToDelete, setMapToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [renamingMapId, setRenamingMapId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
   const { user, signOut } = useAuth();
   const { plan, isPro, isFreeTier, limits, canCreateMap, checkSubscription, openCustomerPortal } = useSubscription();
   const [portalLoading, setPortalLoading] = useState(false);
@@ -98,6 +110,14 @@ export default function Dashboard() {
 
     fetchMaps();
   }, [user]);
+
+  // Focus rename input when editing starts
+  useEffect(() => {
+    if (renamingMapId && renameInputRef.current) {
+      renameInputRef.current.focus();
+      renameInputRef.current.select();
+    }
+  }, [renamingMapId]);
 
   const currentMapCount = userMaps.length;
 
@@ -161,6 +181,97 @@ export default function Dashboard() {
     }
   };
 
+  const handleDuplicateMap = async (map: UserMap) => {
+    if (!user) return;
+    
+    // Check if user can create more maps
+    if (!canCreateMap(currentMapCount)) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+
+    setIsDuplicating(map.id);
+    try {
+      const { data, error } = await supabase
+        .from("maps")
+        .insert([{
+          user_id: user.id,
+          name: `Copy of ${map.name}`,
+          nodes: JSON.parse(JSON.stringify(map.nodes)),
+          edges: JSON.parse(JSON.stringify(map.edges)),
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      const newMap: UserMap = {
+        ...data,
+        nodes: (data.nodes as unknown) as Node[],
+        edges: (data.edges as unknown) as Edge[],
+      };
+      
+      setUserMaps(maps => [newMap, ...maps]);
+      toast.success("Map duplicated successfully");
+      
+      // Navigate to the new map
+      navigate(`/editor/${data.id}`);
+    } catch (err) {
+      console.error("Error duplicating map:", err);
+      toast.error("Failed to duplicate map");
+    } finally {
+      setIsDuplicating(null);
+    }
+  };
+
+  const handleStartRename = (map: UserMap) => {
+    setRenamingMapId(map.id);
+    setRenameValue(map.name);
+  };
+
+  const handleCancelRename = () => {
+    setRenamingMapId(null);
+    setRenameValue("");
+  };
+
+  const handleSaveRename = async () => {
+    if (!renamingMapId || !renameValue.trim()) {
+      handleCancelRename();
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("maps")
+        .update({ name: renameValue.trim() })
+        .eq("id", renamingMapId);
+
+      if (error) throw error;
+      
+      setUserMaps(maps => 
+        maps.map(m => 
+          m.id === renamingMapId 
+            ? { ...m, name: renameValue.trim() } 
+            : m
+        )
+      );
+      toast.success("Map renamed successfully");
+    } catch (err) {
+      console.error("Error renaming map:", err);
+      toast.error("Failed to rename map");
+    } finally {
+      handleCancelRename();
+    }
+  };
+
+  const handleRenameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSaveRename();
+    } else if (e.key === "Escape") {
+      handleCancelRename();
+    }
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -183,7 +294,6 @@ export default function Dashboard() {
   const canCreate = canCreateMap(currentMapCount);
 
   const totalNodes = userMaps.reduce((sum, m) => sum + (m.nodes?.length || 0), 0);
-  const totalConnections = userMaps.reduce((sum, m) => sum + (m.edges?.length || 0), 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -460,21 +570,55 @@ export default function Dashboard() {
                 >
                   <div className="h-full rounded-xl bg-card border border-border hover:border-primary/50 transition-all overflow-hidden">
                     {/* Thumbnail */}
-                    <div className="h-32 bg-secondary relative canvas-dots">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="flex gap-2">
-                          <div className="w-16 h-8 rounded-lg bg-primary/80" />
-                          <div className="w-12 h-8 rounded-lg bg-accent/80" />
-                        </div>
-                      </div>
+                    <div className="h-32 relative">
+                      <MapThumbnail 
+                        nodes={map.nodes || []} 
+                        edges={map.edges || []} 
+                        width={400}
+                        height={128}
+                      />
                     </div>
                     
                     {/* Info */}
                     <div className="p-4">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-medium text-foreground group-hover:text-primary transition-colors truncate flex-1 mr-2">
-                          {map.name}
-                        </h3>
+                        {renamingMapId === map.id ? (
+                          <div className="flex-1 mr-2 flex items-center gap-1" onClick={(e) => e.preventDefault()}>
+                            <Input
+                              ref={renameInputRef}
+                              value={renameValue}
+                              onChange={(e) => setRenameValue(e.target.value)}
+                              onKeyDown={handleRenameKeyDown}
+                              onBlur={handleSaveRename}
+                              className="h-7 text-sm"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleSaveRename();
+                              }}
+                              className="p-1 rounded-md hover:bg-secondary text-primary"
+                            >
+                              <Check className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleCancelRename();
+                              }}
+                              className="p-1 rounded-md hover:bg-secondary text-muted-foreground"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <h3 className="font-medium text-foreground group-hover:text-primary transition-colors truncate flex-1 mr-2">
+                            {map.name}
+                          </h3>
+                        )}
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button
@@ -485,6 +629,30 @@ export default function Dashboard() {
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-card">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleStartRename(map);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleDuplicateMap(map);
+                              }}
+                              disabled={isDuplicating === map.id}
+                            >
+                              {isDuplicating === map.id ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                <Copy className="h-4 w-4 mr-2" />
+                              )}
+                              Duplicate
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem
                               onClick={(e) => {
                                 e.preventDefault();
