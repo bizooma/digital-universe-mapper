@@ -29,6 +29,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { UpgradeCard } from "@/components/dashboard/UpgradeCard";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
 import { MapThumbnail } from "@/components/dashboard/MapThumbnail";
+import { TemplateSelector } from "@/components/dashboard/TemplateSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -49,6 +50,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import type { Node, Edge } from "@xyflow/react";
+import type { MapTemplate } from "@/data/mapTemplates";
 
 interface UserMap {
   id: string;
@@ -64,6 +66,7 @@ export default function Dashboard() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchParams] = useSearchParams();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [userMaps, setUserMaps] = useState<UserMap[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [mapToDelete, setMapToDelete] = useState<string | null>(null);
@@ -155,7 +158,20 @@ export default function Dashboard() {
       setShowUpgradeDialog(true);
       return;
     }
-    // Navigate to new map - this will be handled by the Link component
+    setShowTemplateSelector(true);
+  };
+
+  const handleSelectTemplate = (template: MapTemplate) => {
+    setShowTemplateSelector(false);
+    // Navigate to editor with template data in state
+    navigate("/editor/new", { 
+      state: { 
+        template: { 
+          nodes: template.nodes, 
+          edges: template.edges 
+        } 
+      } 
+    });
   };
 
   const handleDeleteMap = async () => {
@@ -328,6 +344,13 @@ export default function Dashboard() {
         maxCount={limits.maxMaps}
       />
 
+      {/* Template Selector */}
+      <TemplateSelector
+        open={showTemplateSelector}
+        onOpenChange={setShowTemplateSelector}
+        onSelect={handleSelectTemplate}
+      />
+
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border z-40 hidden lg:flex lg:flex-col">
         <div className="p-6">
@@ -339,11 +362,9 @@ export default function Dashboard() {
           </Link>
 
           {canCreate ? (
-            <Button variant="hero" className="w-full" asChild>
-              <Link to="/editor/new">
-                <Plus className="h-4 w-4" />
-                New Map
-              </Link>
+            <Button variant="hero" className="w-full" onClick={handleCreateMap}>
+              <Plus className="h-4 w-4" />
+              New Map
             </Button>
           ) : (
             <Button variant="hero" className="w-full" onClick={handleCreateMap}>
@@ -428,11 +449,9 @@ export default function Dashboard() {
               <span className="font-bold text-foreground">LinkScape</span>
             </Link>
             {canCreate ? (
-              <Button variant="hero" size="sm" asChild>
-                <Link to="/editor/new">
-                  <Plus className="h-4 w-4" />
-                  New
-                </Link>
+              <Button variant="hero" size="sm" onClick={handleCreateMap}>
+                <Plus className="h-4 w-4" />
+                New
               </Button>
             ) : (
               <Button variant="hero" size="sm" onClick={handleCreateMap}>
@@ -519,17 +538,17 @@ export default function Dashboard() {
               animate={{ opacity: 1, scale: 1 }}
             >
               {canCreate ? (
-                <Link to="/editor/new" className="group block h-full">
+                <button onClick={handleCreateMap} className="group block h-full w-full text-left">
                   <div className="h-full rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors p-8 flex flex-col items-center justify-center text-center min-h-[200px]">
                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                       <Plus className="h-6 w-6 text-primary" />
                     </div>
                     <h3 className="font-medium text-foreground mb-1">Create New Map</h3>
                     <p className="text-sm text-muted-foreground">
-                      Start mapping your digital presence
+                      Choose a template to get started
                     </p>
                   </div>
-                </Link>
+                </button>
               ) : (
                 <button onClick={handleCreateMap} className="group block h-full w-full text-left">
                   <div className="h-full rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors p-8 flex flex-col items-center justify-center text-center min-h-[200px]">

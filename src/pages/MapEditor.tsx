@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   ReactFlow,
   Controls,
@@ -45,15 +45,18 @@ import {
   Loader2,
   Cloud,
   CloudOff,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes, type NodeCategory, type LinkNodeData } from "@/components/editor/LinkNode";
 import { AddNodePanel } from "@/components/editor/AddNodePanel";
 import { EditNodePanel } from "@/components/editor/EditNodePanel";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -92,9 +95,16 @@ const getDefaultNodes = (): Node[] => [
 function MapEditorInner() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const isNewMap = id === "new";
-  const [nodes, setNodes, onNodesChange] = useNodesState(getDefaultNodes());
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  
+  // Check for template in navigation state
+  const templateData = location.state?.template as { nodes: Node[]; edges: Edge[] } | undefined;
+  const initialNodes = templateData?.nodes || getDefaultNodes();
+  const initialEdges = templateData?.edges || [];
+  
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdges);
   const [isAddPanelOpen, setIsAddPanelOpen] = useState(false);
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -123,6 +133,18 @@ function MapEditorInner() {
   
   // Undo/Redo functionality
   const { canUndo, canRedo, undo, redo, takeSnapshot, reset: resetHistory } = useUndoRedo({ maxHistory: 50 });
+  
+  // Onboarding tour
+  const { isCompleted: onboardingCompleted, isActive: onboardingActive, currentStep, nextStep, prevStep, skipTour, startTour } = useOnboarding();
+  
+  // Auto-start onboarding tour for new users on new maps
+  useEffect(() => {
+    if (isNewMap && !onboardingCompleted && !isLoading) {
+      // Small delay to let the UI settle
+      const timer = setTimeout(() => startTour(), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isNewMap, onboardingCompleted, isLoading, startTour]);
 
   // Load existing map from database
   useEffect(() => {
@@ -886,7 +908,7 @@ function MapEditorInner() {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          <Button variant="ghost" size="sm" onClick={handleShare}>
+          <Button variant="ghost" size="sm" onClick={handleShare} data-onboarding="share-button">
             <Share2 className="h-4 w-4 mr-2" />
             Share
           </Button>
@@ -898,11 +920,16 @@ function MapEditorInner() {
             )}
             {isSaving ? "Saving..." : "Save"}
           </Button>
+          
+          {/* Help/Tour button */}
+          <Button variant="ghost" size="icon-sm" onClick={startTour} title="Start Tour">
+            <HelpCircle className="h-4 w-4" />
+          </Button>
         </div>
       </header>
 
       {/* Main Canvas */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative" data-onboarding="canvas">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -939,7 +966,7 @@ function MapEditorInner() {
           />
 
           {/* Left Toolbar Panel */}
-          <Panel position="top-left" className="!m-4">
+          <Panel position="top-left" className="!m-4" data-onboarding="toolbar">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -950,6 +977,7 @@ function MapEditorInner() {
                 size="icon"
                 onClick={handleOpenAddPanel}
                 title={atNodeLimit ? "Node limit reached - Upgrade to add more" : "Add Node"}
+                data-onboarding="add-node"
               >
                 {atNodeLimit ? <Lock className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
               </Button>
@@ -1016,6 +1044,15 @@ function MapEditorInner() {
           onDelete={handleNodeDelete}
         />
       </div>
+      
+      {/* Onboarding Tour */}
+      <OnboardingTour
+        isActive={onboardingActive}
+        currentStep={currentStep}
+        onNext={nextStep}
+        onPrev={prevStep}
+        onSkip={skipTour}
+      />
     </div>
   );
 }
