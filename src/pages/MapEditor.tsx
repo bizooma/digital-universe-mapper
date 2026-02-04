@@ -31,12 +31,24 @@ import {
   LayoutGrid,
   Save,
   Lock,
+  Check,
+  Copy,
+  Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes, type NodeCategory } from "@/components/editor/LinkNode";
 import { AddNodePanel } from "@/components/editor/AddNodePanel";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
 import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 // Start with empty canvas - just a central hub node for new maps
 const getInitialNodes = (isNewMap: boolean): Node[] => {
@@ -74,8 +86,15 @@ export default function MapEditor() {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [backgroundVariant, setBackgroundVariant] = useState<"dots" | "lines" | "cross">("dots");
   const nodeIdCounter = useRef(5);
+  const [mapName, setMapName] = useState(isNewMap ? "Untitled Map" : "Personal Brand");
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [copied, setCopied] = useState(false);
   
-  const { isFreeTier, limits, canAddNode } = useSubscription();
+  const { isFreeTier, isPro, limits, canAddNode } = useSubscription();
+
+  // Generate a shareable URL (in production this would be a real permalink)
+  const shareUrl = `${window.location.origin}/view/${id || "new"}`;
 
   const onConnect = useCallback(
     (params: Connection) =>
@@ -130,10 +149,112 @@ export default function MapEditor() {
     setBackgroundVariant(variants[(currentIndex + 1) % variants.length]);
   };
 
+  const handleSave = () => {
+    // In production, this would save to the database
+    toast.success("Map saved successfully!", {
+      description: `"${mapName}" has been saved.`,
+    });
+  };
+
+  const handleShare = () => {
+    setShowShareDialog(true);
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast.success("Link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handleExport = () => {
+    if (isFreeTier) {
+      setShowExportDialog(true);
+    } else {
+      // In production, this would trigger the actual export
+      toast.success("Exporting map...", {
+        description: "Your PNG will download shortly.",
+      });
+    }
+  };
+
   const atNodeLimit = !canAddNode(nodes.length);
 
   return (
     <div className="h-screen w-screen bg-background flex flex-col">
+      {/* Share Dialog */}
+      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share your map</DialogTitle>
+            <DialogDescription>
+              Anyone with this link can view your map.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2">
+            <Input
+              readOnly
+              value={shareUrl}
+              className="flex-1"
+            />
+            <Button onClick={handleCopyLink} size="icon" variant="outline">
+              {copied ? (
+                <Check className="h-4 w-4 text-green-500" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          {isFreeTier && (
+            <p className="text-xs text-muted-foreground mt-2">
+              <Crown className="h-3 w-3 inline mr-1" />
+              Upgrade to Pro for a custom shareable URL
+            </p>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Export Upgrade Dialog */}
+      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-primary" />
+              Upgrade to Export
+            </DialogTitle>
+            <DialogDescription>
+              Export features are available on Pro and Team plans.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+              <h4 className="font-medium text-foreground mb-2">Pro includes:</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• PNG export (high resolution)</li>
+                <li>• PDF export</li>
+                <li>• No watermark</li>
+                <li>• Unlimited maps & nodes</li>
+              </ul>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowExportDialog(false)} className="flex-1">
+                Maybe Later
+              </Button>
+              <Button variant="hero" asChild className="flex-1">
+                <Link to="/pricing">
+                  <Crown className="h-4 w-4 mr-2" />
+                  Upgrade Now
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Upgrade Dialog */}
       <UpgradeLimitDialog
         open={showUpgradeDialog}
@@ -157,7 +278,8 @@ export default function MapEditor() {
             </div>
             <input
               type="text"
-              defaultValue={id === "new" ? "Untitled Map" : "Personal Brand"}
+              value={mapName}
+              onChange={(e) => setMapName(e.target.value)}
               className="bg-transparent border-none text-foreground font-medium focus:outline-none focus:ring-0 w-auto"
             />
           </div>
@@ -186,15 +308,16 @@ export default function MapEditor() {
 
           <div className="h-6 w-px bg-border mx-2" />
 
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={handleExport}>
             <Download className="h-4 w-4 mr-2" />
             Export
+            {isFreeTier && <Lock className="h-3 w-3 ml-1 opacity-50" />}
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={handleShare}>
             <Share2 className="h-4 w-4 mr-2" />
             Share
           </Button>
-          <Button variant="hero" size="sm">
+          <Button variant="hero" size="sm" onClick={handleSave}>
             <Save className="h-4 w-4 mr-2" />
             Save
           </Button>
