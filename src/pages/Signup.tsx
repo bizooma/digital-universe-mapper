@@ -78,7 +78,7 @@ export default function Signup() {
             Create your account
           </h1>
           <p className="text-muted-foreground mb-8">
-            Start your 14-day free trial of Pro features
+            Get started with your free account
           </p>
 
           {/* Google Sign Up */}

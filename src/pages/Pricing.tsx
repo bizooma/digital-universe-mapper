@@ -44,7 +44,7 @@ const plans = [
       "Analytics dashboard",
     ],
     notIncluded: [],
-    cta: "Start Free Trial",
+    cta: "Get Started",
     ctaVariant: "hero" as const,
     popular: true,
   },
@@ -72,8 +72,8 @@ const plans = [
 
 const faqs = [
   {
-    question: "How does the free trial work?",
-    answer: "Start with a 14-day free trial of Pro features. No credit card required. After the trial, you can continue with the Free plan or upgrade to Pro.",
+    question: "How does the free plan work?",
+    answer: "Start with our free plan to explore LinkScape. No credit card required. You can upgrade to Pro anytime for more features.",
   },
   {
     question: "Can I change my plan later?",
@@ -268,11 +268,11 @@ export default function Pricing() {
                 Ready to get started?
               </h2>
               <p className="text-lg text-muted-foreground mb-10">
-                Start your 14-day free trial today. No credit card required.
+                Start with our free plan today. No credit card required.
               </p>
               <Button variant="hero" size="xl" asChild>
                 <Link to="/signup">
-                  Start Free Trial
+                  Get Started Free
                   <ArrowRight className="h-5 w-5" />
                 </Link>
               </Button>
