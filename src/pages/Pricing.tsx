@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription, PriceKey } from "@/hooks/useSubscription";
 import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { toast } from "sonner";
 
 const plans = [
@@ -121,6 +122,10 @@ const faqs = [
 
 export default function Pricing() {
   useCanonicalUrl();
+  usePageMeta({
+    title: "Pricing Plans",
+    description: "Choose the perfect Mapprr plan for your needs. Start free and upgrade when you need more features. No hidden fees."
+  });
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const { user } = useAuth();

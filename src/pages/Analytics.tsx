@@ -23,6 +23,7 @@ import {
 import { ViewsChart } from "@/components/analytics/ViewsChart";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { supabase } from "@/integrations/supabase/client";
 import type { Node, Edge } from "@xyflow/react";
 
@@ -41,6 +42,10 @@ interface ViewData {
 }
 
 export default function Analytics() {
+  usePageMeta({
+    title: "Analytics",
+    description: "Track views and engagement for your shared Mapprr site maps with detailed analytics."
+  });
   const { user } = useAuth();
   const { isPro } = useSubscription();
   const [isLoading, setIsLoading] = useState(true);

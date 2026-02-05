@@ -9,10 +9,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export default function Settings() {
+  usePageMeta({
+    title: "Settings",
+    description: "Manage your Mapprr account settings, profile information, and billing details."
+  });
   const navigate = useNavigate();
   const { user } = useAuth();
   const { plan, isPro, openCustomerPortal, subscriptionEnd } = useSubscription();
