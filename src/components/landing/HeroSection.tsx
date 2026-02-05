@@ -104,7 +104,7 @@ export function HeroSection() {
           >
             <span className="text-white">Map your</span>
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-cyan-300 animate-shimmer bg-[length:200%_auto]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-300 via-rose-400 to-orange-300 animate-shimmer bg-[length:200%_auto]">
               digital universe
             </span>
           </motion.h1>
