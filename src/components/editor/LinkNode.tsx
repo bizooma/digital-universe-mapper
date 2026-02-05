@@ -42,6 +42,8 @@ export interface LinkNodeData {
   category: NodeCategory;
   platform?: string;
   notes?: string;
+  brandColor?: string; // Custom brand color from map settings
+  nodeStyle?: "rounded" | "square" | "pill";
   [key: string]: unknown;
 }
 
@@ -122,16 +124,27 @@ function LinkNode({ data, selected }: NodeProps) {
   const nodeData = data as LinkNodeData;
   const config = categoryConfig[nodeData.category] || categoryConfig.website;
   const Icon = platformIcons[nodeData.platform?.toLowerCase() || ""] || platformIcons.default;
+  
+  // Use brand color if provided, otherwise fall back to category color
+  const borderColor = nodeData.brandColor || config.color;
+  
+  // Determine border radius based on nodeStyle
+  const borderRadiusClass = nodeData.nodeStyle === "square" 
+    ? "rounded-none" 
+    : nodeData.nodeStyle === "pill" 
+    ? "rounded-full" 
+    : "rounded-xl";
 
   return (
     <div
       className={`
-        relative px-4 py-3 rounded-xl bg-card border-2 transition-all duration-200
-        ${selected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}
+        relative px-4 py-3 ${borderRadiusClass} bg-card border-2 transition-all duration-200
+        ${selected ? "ring-2 ring-offset-2 ring-offset-background" : ""}
       `}
       style={{ 
-        borderColor: config.color,
-        boxShadow: `0 0 20px -5px ${config.color}40`
+        borderColor: borderColor,
+        boxShadow: `0 0 20px -5px ${borderColor}40`,
+        ...(selected && { ringColor: borderColor })
       }}
     >
       {/* Handles - both source and target on each side for flexible connections */}
@@ -250,15 +263,28 @@ function HubNode({ data, selected, id }: NodeProps) {
     }
   };
 
+  // Use brand color if provided
+  const brandColor = nodeData.brandColor || "hsl(var(--primary))";
+  
+  // Determine border radius based on nodeStyle
+  const borderRadiusClass = nodeData.nodeStyle === "square" 
+    ? "rounded-none" 
+    : nodeData.nodeStyle === "pill" 
+    ? "rounded-full" 
+    : "rounded-2xl";
+
   return (
     <div
       className={`
-        relative px-6 py-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 
-        border-2 border-primary-foreground/20 transition-all duration-200
-        ${selected ? "ring-2 ring-primary-foreground ring-offset-2 ring-offset-background" : ""}
+        relative px-6 py-4 ${borderRadiusClass} 
+        border-2 transition-all duration-200
+        ${selected ? "ring-2 ring-offset-2 ring-offset-background" : ""}
       `}
       style={{ 
-        boxShadow: "0 0 40px -5px hsl(var(--primary) / 0.5)"
+        background: `linear-gradient(135deg, ${brandColor}, ${brandColor}cc)`,
+        borderColor: "rgba(255,255,255,0.2)",
+        boxShadow: `0 0 40px -5px ${brandColor}80`,
+        ...(selected && { ringColor: "rgba(255,255,255,0.8)" })
       }}
       data-onboarding="hub-node"
     >

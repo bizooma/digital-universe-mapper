@@ -305,40 +305,43 @@ function MapEditorInner() {
   // Sync logo URL with logo node
   useEffect(() => {
     if (isInitialLoadRef.current || isLoading) return;
-
-    const existingLogoNode = nodes.find((n) => n.type === "logoNode");
     
-    if (logoUrl) {
-      if (existingLogoNode) {
-        // Update existing logo node
-        if ((existingLogoNode.data as { logoUrl?: string }).logoUrl !== logoUrl) {
-          setNodes((nds) =>
-            nds.map((node) =>
+    setNodes((nds) => {
+      const existingLogoNode = nds.find((n) => n.type === "logoNode");
+      
+      if (logoUrl) {
+        if (existingLogoNode) {
+          // Update existing logo node if data changed
+          const currentData = existingLogoNode.data as { logoUrl?: string; brandColor?: string };
+          if (currentData.logoUrl !== logoUrl || currentData.brandColor !== mapSettings.primaryColor) {
+            return nds.map((node) =>
               node.type === "logoNode"
-                ? { ...node, data: { ...node.data, logoUrl } }
+                ? { ...node, data: { ...node.data, logoUrl, brandColor: mapSettings.primaryColor } }
                 : node
-            )
-          );
+            );
+          }
+          return nds; // No changes needed
+        } else {
+          // Add new logo node - position in top-left area of canvas
+          const newLogoNode: Node = {
+            id: "logo-node",
+            type: "logoNode",
+            position: { x: 50, y: 50 },
+            data: { logoUrl, brandColor: mapSettings.primaryColor },
+            draggable: true,
+            selectable: true,
+          };
+          return [...nds, newLogoNode];
         }
       } else {
-        // Add new logo node - position in top-left area of canvas
-        const newLogoNode: Node = {
-          id: "logo-node",
-          type: "logoNode",
-          position: { x: 50, y: 50 },
-          data: { logoUrl },
-          draggable: true,
-          selectable: true,
-        };
-        setNodes((nds) => [...nds, newLogoNode]);
+        // Remove logo node if logo URL is cleared
+        if (existingLogoNode) {
+          return nds.filter((n) => n.type !== "logoNode");
+        }
+        return nds;
       }
-    } else {
-      // Remove logo node if logo URL is cleared
-      if (existingLogoNode) {
-        setNodes((nds) => nds.filter((n) => n.type !== "logoNode"));
-      }
-    }
-  }, [logoUrl, isLoading, setNodes]);
+    });
+  }, [logoUrl, isLoading, setNodes, mapSettings.primaryColor]);
 
   // Generate a shareable URL
   const shareUrl = `${window.location.origin}/view/${mapId || "new"}`;
@@ -356,10 +359,11 @@ function MapEditorInner() {
     [setEdges, mapSettings.primaryColor, mapSettings.connectionStyle]
   );
 
-  // Update all existing edges when map settings change
+  // Update all existing edges and nodes when map settings change
   useEffect(() => {
     if (isInitialLoadRef.current || isLoading) return;
     
+    // Update edges with new color and style
     setEdges((eds) =>
       eds.map((edge) => ({
         ...edge,
@@ -367,7 +371,24 @@ function MapEditorInner() {
         type: mapSettings.connectionStyle,
       }))
     );
-  }, [mapSettings.primaryColor, mapSettings.connectionStyle, setEdges, isLoading]);
+    
+    // Update all nodes with brand color and node style
+    setNodes((nds) =>
+      nds.map((node) => {
+        // Don't update logo nodes
+        if (node.type === "logoNode") return node;
+        
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            brandColor: mapSettings.primaryColor,
+            nodeStyle: mapSettings.nodeStyle,
+          },
+        };
+      })
+    );
+  }, [mapSettings.primaryColor, mapSettings.connectionStyle, mapSettings.nodeStyle, setEdges, setNodes, isLoading]);
 
   const onEdgeClick = useCallback(
     (_event: React.MouseEvent, edge: Edge) => {
@@ -468,6 +489,8 @@ function MapEditorInner() {
           category: nodeData.category,
           platform: nodeData.platform,
           notes: nodeData.notes,
+          brandColor: mapSettings.primaryColor,
+          nodeStyle: mapSettings.nodeStyle,
         },
       };
       setNodes((nds) => [...nds, newNode]);
@@ -501,6 +524,8 @@ function MapEditorInner() {
             category: nodeData.category,
             platform: nodeData.platform,
             notes: nodeData.notes,
+            brandColor: mapSettings.primaryColor,
+            nodeStyle: mapSettings.nodeStyle,
           },
         };
       });

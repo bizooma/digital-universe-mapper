@@ -3,18 +3,23 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 
 export interface LogoNodeData {
   logoUrl: string;
+  brandColor?: string;
   [key: string]: unknown;
 }
 
 function LogoNode({ data, selected }: NodeProps) {
   const nodeData = data as LogoNodeData;
+  const borderColor = nodeData.brandColor || "hsl(var(--primary))";
 
   return (
     <div
       className={`
         relative bg-card/90 backdrop-blur-sm border-2 rounded-lg p-2 shadow-lg transition-all duration-200 cursor-move
-        ${selected ? "border-primary ring-2 ring-primary/30" : "border-border"}
       `}
+      style={{
+        borderColor: selected ? borderColor : "hsl(var(--border))",
+        boxShadow: selected ? `0 0 10px -2px ${borderColor}60` : undefined,
+      }}
       data-logo="true"
     >
       {/* Invisible handles for consistency, but logo doesn't connect to anything */}
