@@ -77,8 +77,8 @@ export function HeroSection() {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroBackground})` }}
       />
-      {/* Subtle overlay for depth */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-background/90" />
+      {/* Overlay for text contrast */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background/95" />
       
       {/* Floating orbs */}
       <FloatingOrbs />
