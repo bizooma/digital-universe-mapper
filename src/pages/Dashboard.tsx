@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { Node, Edge } from "@xyflow/react";
 import type { MapTemplate } from "@/data/mapTemplates";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface UserMap {
   id: string;
@@ -81,6 +82,26 @@ export default function Dashboard() {
   const { user, signOut } = useAuth();
   const { plan, isPro, isProPlus, isFreeTier, limits, canCreateMap, checkSubscription, openCustomerPortal } = useSubscription();
   const [portalLoading, setPortalLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  // Fetch user's avatar from profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("user_id", user.id)
+        .single();
+      
+      if (data?.avatar_url) {
+        setAvatarUrl(data.avatar_url);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
 
   // Fetch user's maps from database
   useEffect(() => {
@@ -414,9 +435,12 @@ export default function Dashboard() {
 
         <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground font-medium">
-              {initials}
-            </div>
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={avatarUrl || undefined} />
+              <AvatarFallback className="bg-gradient-primary text-primary-foreground font-medium">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
               <div className="flex items-center gap-1.5">
