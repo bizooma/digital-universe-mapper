@@ -1027,7 +1027,7 @@ function MapEditorInner() {
             color="hsl(var(--border))"
           />
           <Controls
-            className="!bg-card !border-border !shadow-lg !left-4 !top-[220px] !bottom-auto [&>button]:!bg-card [&>button]:!border-border [&>button]:!text-foreground [&>button:hover]:!bg-secondary"
+            className="!bg-card !border-border !shadow-lg !left-[72px] !top-4 !bottom-auto [&>button]:!bg-card [&>button]:!border-border [&>button]:!text-foreground [&>button:hover]:!bg-secondary"
             showInteractive={false}
             position="top-left"
           />
@@ -1071,9 +1071,10 @@ function MapEditorInner() {
                         }
                       }}
                       title="Import CSV"
+                      className="relative"
                     >
                       <FileSpreadsheet className="h-4 w-4" />
-                      {!isProPlus && <Lock className="h-2 w-2 absolute bottom-1 right-1 opacity-50" />}
+                      {!isProPlus && <Lock className="h-2.5 w-2.5 absolute -bottom-0.5 -right-0.5 text-muted-foreground" />}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -1098,9 +1099,10 @@ function MapEditorInner() {
                         }
                       }}
                       title="URL Crawler"
+                      className="relative"
                     >
                       <Globe className="h-4 w-4" />
-                      {!isProPlus && <Lock className="h-2 w-2 absolute bottom-1 right-1 opacity-50" />}
+                      {!isProPlus && <Lock className="h-2.5 w-2.5 absolute -bottom-0.5 -right-0.5 text-muted-foreground" />}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
