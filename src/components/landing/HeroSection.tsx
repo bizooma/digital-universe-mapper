@@ -89,10 +89,10 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8 animate-pulse-slow"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 backdrop-blur-sm border border-orange-400/30 mb-8 animate-pulse-slow"
           >
-            <Sparkles className="h-4 w-4 text-white" />
-            <span className="text-sm font-medium text-white">Now in public beta</span>
+            <Sparkles className="h-4 w-4 text-orange-300" />
+            <span className="text-sm font-medium text-orange-200">Now in public beta</span>
           </motion.div>
 
           {/* Headline */}
@@ -127,7 +127,7 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Button variant="hero" size="xl" asChild>
+            <Button size="xl" className="bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98]" asChild>
               <Link to="/signup">
                 Sign Up Now
                 <ArrowRight className="h-5 w-5" />
