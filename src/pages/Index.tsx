@@ -6,9 +6,14 @@ import { AgenciesSection } from "@/components/landing/AgenciesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { CTASection } from "@/components/landing/CTASection";
 import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 const Index = () => {
   useCanonicalUrl();
+  usePageMeta({
+    title: "Mapprr - Create Beautiful Visual Site Maps",
+    description: "Mapprr helps you create stunning visual site maps for your website. Organize, plan, and share your site structure with ease."
+  });
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

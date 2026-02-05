@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { UpgradeCard } from "@/components/dashboard/UpgradeCard";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
 import { MapThumbnail } from "@/components/dashboard/MapThumbnail";
@@ -66,6 +67,10 @@ interface UserMap {
 }
 
 export default function Dashboard() {
+  usePageMeta({
+    title: "Dashboard",
+    description: "Manage your visual site maps, create new maps, and organize your digital presence with Mapprr."
+  });
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchParams] = useSearchParams();

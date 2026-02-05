@@ -7,10 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { toast } from "sonner";
 
 export default function Signup() {
   useCanonicalUrl();
+  usePageMeta({
+    title: "Sign Up",
+    description: "Create your free Mapprr account and start building beautiful visual site maps in minutes. No credit card required."
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

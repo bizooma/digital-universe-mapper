@@ -7,10 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { toast } from "sonner";
 
 export default function Login() {
   useCanonicalUrl();
+  usePageMeta({
+    title: "Log In",
+    description: "Sign in to your Mapprr account to access your visual site maps and continue building your digital presence."
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
