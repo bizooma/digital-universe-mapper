@@ -148,57 +148,60 @@ function LinkNode({ data, selected }: NodeProps) {
       }}
     >
       {/* Handles - both source and target on each side for flexible connections */}
+      {/* Top handles */}
       <Handle
         type="target"
         position={Position.Top}
         id="top-target"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card"
+        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all"
       />
       <Handle
         type="source"
         position={Position.Top}
         id="top-source"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card !opacity-0 !pointer-events-auto"
-        style={{ top: 0 }}
+        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all !-translate-x-3"
       />
+      
+      {/* Bottom handles */}
       <Handle
         type="target"
         position={Position.Bottom}
         id="bottom-target"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card !opacity-0 !pointer-events-auto"
-        style={{ bottom: 0 }}
+        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all !translate-x-3"
       />
       <Handle
         type="source"
         position={Position.Bottom}
         id="bottom-source"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card"
+        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all"
       />
+      
+      {/* Left handles */}
       <Handle
         type="target"
         position={Position.Left}
         id="left-target"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card"
+        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all"
       />
       <Handle
         type="source"
         position={Position.Left}
         id="left-source"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card !opacity-0 !pointer-events-auto"
-        style={{ left: 0 }}
+        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all !translate-y-3"
       />
+      
+      {/* Right handles */}
       <Handle
         type="target"
         position={Position.Right}
         id="right-target"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card !opacity-0 !pointer-events-auto"
-        style={{ right: 0 }}
+        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all !-translate-y-3"
       />
       <Handle
         type="source"
         position={Position.Right}
         id="right-source"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card"
+        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all"
       />
 
       <div className="flex items-center gap-3">
