@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Twitter, Github, Linkedin } from "lucide-react";
 import mapprLogo from "@/assets/mapprr-logo.png";
 
 const footerLinks = {
@@ -28,12 +27,6 @@ const footerLinks = {
   ],
 };
 
-const socialLinks = [
-  { icon: Twitter, href: "https://twitter.com", label: "Twitter" },
-  { icon: Github, href: "https://github.com", label: "GitHub" },
-  { icon: Linkedin, href: "https://linkedin.com", label: "LinkedIn" },
-];
-
 export function Footer() {
   return (
     <footer className="border-t border-border bg-card">
@@ -48,23 +41,9 @@ export function Footer() {
                 className="h-10 w-auto object-contain"
               />
             </Link>
-            <p className="text-muted-foreground text-sm mb-6 max-w-xs">
+            <p className="text-muted-foreground text-sm max-w-xs">
               Map your entire digital presence in one beautiful, interactive flowchart.
             </p>
-            <div className="flex gap-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={social.label}
-                >
-                  <social.icon className="h-5 w-5" />
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Links */}
