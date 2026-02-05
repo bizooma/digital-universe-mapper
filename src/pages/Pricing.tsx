@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription, PriceKey } from "@/hooks/useSubscription";
+import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
 import { toast } from "sonner";
 
 const plans = [
@@ -119,6 +120,7 @@ const faqs = [
 ];
 
 export default function Pricing() {
+  useCanonicalUrl();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const { user } = useAuth();
