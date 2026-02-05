@@ -1,138 +1,155 @@
 
-
-# Hero Section Redesign Plan
+# Pro Plus Plan Implementation
 
 ## Overview
-Transform the hero section into a more dynamic, premium experience with an interactive map preview, real user avatars, and enhanced visual polish that matches the quality of tools like Linear, Notion, and Figma.
+
+Create a new "Pro Plus" tier at $15/month positioned between Pro ($8/month) and Team ($20/month), offering two powerful automation features:
+1. **CSV Import** - Upload a CSV file to bulk-create nodes on a map
+2. **URL Crawler** - Enter a URL and automatically generate a map of all pages on that website
 
 ---
 
-## Current Issues Identified
+## New Features Summary
 
-1. **Static Map Preview**: The current MapPreview is a basic recreation with simple animated dots - lacks the dynamic, "alive" feeling of a real product demo
-2. **Placeholder Avatars**: Social proof uses generic letter circles (A, B, C, D, E) instead of realistic user photos
-3. **Limited Interactivity**: No hover effects, mouse-following elements, or interactive elements in the preview
-4. **Missing Visual Depth**: Could benefit from floating particles, glowing effects, and more premium polish
+### Feature 1: CSV Import
+Users can upload a CSV file with columns like `label`, `url`, `category`, `platform`, and `notes` to automatically create multiple nodes at once.
 
----
-
-## Redesign Components
-
-### 1. Enhanced Interactive Map Preview
-
-**New Features:**
-- Floating animation on nodes (subtle up/down movement with staggered delays)
-- Pulsing glow effects on the hub node to draw attention
-- Animated connection lines with flowing gradients (like data moving between nodes)
-- Platform icons inside each node (Instagram, Twitter, YouTube icons)
-- Hover effect when user moves mouse near the preview area (parallax-like movement)
-- Improved node styling matching the actual editor (rounded corners, gradients, shadows)
-
-**Implementation:**
-- Update `MapPreview` component with enhanced node designs
-- Add `animate-float` class with staggered animation delays
-- Create animated gradient lines using SVG gradients with animation
-- Add platform icons from the existing `PlatformIcons.tsx` file
-
-### 2. Real User Avatars
-
-**Approach:**
-- Use high-quality stock avatar images from a reliable CDN (like UI Faces or randomuser.me)
-- Add subtle ring/glow effects on avatars
-- Include hover tooltip with creator type (e.g., "Content Creator", "Entrepreneur")
-- Animate avatars appearing with a stagger effect
-
-**Implementation:**
-- Create an array of avatar objects with image URLs and names
-- Style with ring effects and hover animations
-- Add a subtle overlap animation on load
-
-### 3. Enhanced Visual Effects
-
-**New Elements:**
-- Floating particles/orbs in the background (subtle, blurred circles with slow movement)
-- Gradient mesh or aurora-like background behind the map preview
-- Enhanced glass morphism on the preview container with animated border glow
-- Mouse-tracking subtle glow that follows cursor over the hero area
-
-**Implementation:**
-- Add a `FloatingOrbs` component with animated background elements
-- Enhance the glass container with animated border gradient
-- Optional: Add subtle mouse-tracking effect for premium feel
-
-### 4. Improved Typography & Badge
-
-**Enhancements:**
-- Add animated sparkle/shine effect on the gradient text
-- Pulse animation on the badge to draw initial attention
-- Improve headline hierarchy with better letter-spacing
+### Feature 2: URL Crawler  
+Users enter a website URL, and the system uses Firecrawl's Map API to discover all pages, then generates nodes from the discovered URLs.
 
 ---
 
-## Technical Approach
+## Implementation Tasks
 
-### File Changes
+### 1. Create Stripe Products & Prices
+Create new products and prices in Stripe for Pro Plus:
+- **Pro Plus Monthly**: $15/month
+- **Pro Plus Yearly**: $135/year (save 25%, equivalent to $11.25/month)
 
-**Primary File: `src/components/landing/HeroSection.tsx`**
+### 2. Update Backend Edge Functions
 
-1. **Extract MapPreview to enhanced version** with:
-   - Platform icons from `PlatformIcons.tsx`
-   - Floating animation with CSS keyframes
-   - Animated gradient connection lines
-   - Glowing hub node effect
+**check-subscription/index.ts**
+- Add Pro Plus product IDs to the `PRODUCT_IDS` object
+- Add logic to return `plan: "proplus"` when matching Pro Plus products
 
-2. **Create AvatarStack component** with:
-   - Real avatar images (using reliable placeholder service)
-   - Hover effects and tooltips
-   - Ring glow animations
+**create-checkout/index.ts**
+- Add Pro Plus price IDs to the `PRICE_IDS` object
+- Support `proplus_monthly` and `proplus_yearly` price keys
 
-3. **Add FloatingOrbs background component** with:
-   - 3-5 blurred gradient orbs
-   - Slow floating animation
-   - Low opacity for subtlety
+### 3. Update Frontend Subscription System
 
-4. **Enhanced visual effects:**
-   - Animated border on glass container
-   - Subtle parallax on mouse move (optional)
+**useSubscription.tsx**
+- Add `"proplus"` to the `Plan` type
+- Add Pro Plus limits to `PLAN_LIMITS` (unlimited maps/nodes like Pro)
+- Add `proplus_monthly` and `proplus_yearly` to `PRICE_KEYS`
+- Add `isProPlus` computed property
 
-### CSS Additions (in `src/index.css`)
+### 4. Update Pricing Pages
 
+**Pricing.tsx** (full pricing page)
+- Add Pro Plus plan card between Pro and Team
+- Set price to $15/month, $135/year
+- List features including CSV import and URL crawler
+- Update grid from 3 columns to 4 columns
+
+**PricingSection.tsx** (landing page section)
+- Add Pro Plus plan card
+- Update grid layout to 4 columns
+
+### 5. Create Firecrawl Integration
+
+**Connect Firecrawl connector** to enable URL crawling
+
+**Create edge function: firecrawl-map/index.ts**
+- Uses Firecrawl Map API to discover all URLs on a website
+- Returns list of discovered page URLs
+
+### 6. Create CSV Import Components
+
+**CSVImportDialog.tsx** (new component)
+- File upload interface for CSV files
+- Parses CSV and validates columns
+- Shows preview of nodes to be created
+- Supports required columns: `label`, `url`
+- Optional columns: `category`, `platform`, `notes`
+- Auto-connects nodes to the hub node
+
+**CSVTemplateDownload** button
+- Provides a sample CSV template for users
+
+### 7. Create URL Crawler Components
+
+**URLCrawlerDialog.tsx** (new component)
+- Input field for website URL
+- Progress indicator during crawl
+- Displays discovered pages
+- Allows user to select which pages to import
+- Creates nodes from selected pages with auto-categorization
+
+### 8. Integrate into Map Editor
+
+**MapEditor.tsx**
+- Add toolbar buttons for CSV Import and URL Crawler
+- Restrict features to Pro Plus tier (show upgrade dialog for other tiers)
+- Add handlers for bulk node creation
+- Auto-layout imported nodes in a radial pattern around the hub
+
+### 9. Update Upgrade Dialogs
+
+**UpgradeLimitDialog.tsx / UpgradeCard.tsx**
+- Add Pro Plus as an upgrade option
+- Highlight the new automation features
+
+---
+
+## Technical Details
+
+### CSV Format Specification
 ```text
-New keyframes for:
-- float-slow: Gentle up/down movement
-- pulse-glow: Pulsing glow effect for hub node
-- gradient-flow: Animated gradient for connections
-- shimmer: Text shimmer effect
++----------+------------------------+-----------+----------+------------------+
+| label    | url                    | category  | platform | notes            |
++----------+------------------------+-----------+----------+------------------+
+| Twitter  | https://twitter.com/me | social    | twitter  | Main account     |
+| Website  | https://mysite.com     | website   | website  | Portfolio        |
+| YouTube  | https://youtube.com/c  | social    | youtube  | Video content    |
++----------+------------------------+-----------+----------+------------------+
 ```
 
-### New Animation Classes
+### URL Crawler Flow
+1. User enters domain URL (e.g., `https://example.com`)
+2. Backend calls Firecrawl Map API
+3. Returns list of discovered URLs
+4. Frontend displays URLs with checkboxes
+5. User selects pages to import
+6. System creates nodes, auto-detecting platform from URL patterns
+7. Nodes are arranged radially around the hub
 
-- `.animate-float-slow` - Gentle floating for nodes
-- `.animate-pulse-glow` - Glowing effect for hub
-- `.animate-gradient-flow` - Flowing connection lines
-
----
-
-## Visual Hierarchy (After Redesign)
-
-1. **Eye-catching Badge** - Subtle pulse draws first attention
-2. **Bold Headline** - "Map your digital universe" with gradient shimmer
-3. **Clear Value Prop** - Subheadline explains benefit
-4. **Strong CTAs** - Primary and secondary buttons
-5. **Social Proof** - Real avatars with "2,500+ creators" stat
-6. **Hero Visual** - Dynamic, alive map preview that sells the product
+### Node Auto-Layout Algorithm
+When importing multiple nodes, position them in a circular/radial pattern:
+- Calculate angle offset based on number of nodes
+- Place nodes at increasing radius from hub center
+- Ensure no overlapping
 
 ---
 
-## Summary of Deliverables
+## Files to Create
+- `src/components/editor/CSVImportDialog.tsx`
+- `src/components/editor/URLCrawlerDialog.tsx`
+- `src/lib/api/firecrawl.ts`
+- `supabase/functions/firecrawl-map/index.ts`
 
-| Component | Enhancement |
-|-----------|-------------|
-| MapPreview | Platform icons, floating animation, glowing connections, pulsing hub |
-| Avatars | Real photos, ring effects, hover states |
-| Background | Floating orbs, enhanced gradients |
-| Glass Container | Animated border glow |
-| Typography | Shimmer effect on gradient text |
+## Files to Modify
+- `supabase/functions/check-subscription/index.ts`
+- `supabase/functions/create-checkout/index.ts`
+- `src/hooks/useSubscription.tsx`
+- `src/pages/Pricing.tsx`
+- `src/components/landing/PricingSection.tsx`
+- `src/pages/MapEditor.tsx`
+- `src/components/dashboard/UpgradeLimitDialog.tsx`
 
-This redesign will create a "wow" moment when users land on the page, showcasing the product's value through a dynamic, premium visual experience.
+---
+
+## Summary
+
+This plan adds a complete new pricing tier with two powerful automation features that differentiate Pro Plus from the standard Pro plan. The CSV import allows power users to quickly set up maps with existing data, while the URL crawler provides a unique way to visualize a website's structure - perfect for agencies auditing client sites.
 
