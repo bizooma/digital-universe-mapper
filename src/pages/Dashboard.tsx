@@ -2,7 +2,6 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Plus, 
-  Zap, 
   Settings, 
   LogOut,
   Map,
@@ -23,6 +22,7 @@ import {
   BarChart3,
   Sparkles
 } from "lucide-react";
+import mapprLogo from "@/assets/mapprr-logo.png";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -383,11 +383,12 @@ export default function Dashboard() {
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border z-40 hidden lg:flex lg:flex-col">
         <div className="p-6">
-          <Link to="/" className="flex items-center gap-2 mb-8">
-            <div className="bg-gradient-primary p-2 rounded-lg">
-              <Zap className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold text-foreground">LinkScape</span>
+          <Link to="/" className="flex items-center mb-8">
+            <img 
+              src={mapprLogo} 
+              alt="Mapprr" 
+              className="h-10 w-auto object-contain"
+            />
           </Link>
 
           {canCreate ? (
@@ -500,11 +501,12 @@ export default function Dashboard() {
         {/* Mobile Header */}
         <header className="lg:hidden sticky top-0 z-30 bg-card/80 backdrop-blur-xl border-b border-border p-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="bg-gradient-primary p-1.5 rounded-lg">
-                <Zap className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <span className="font-bold text-foreground">LinkScape</span>
+            <Link to="/" className="flex items-center">
+              <img 
+                src={mapprLogo} 
+                alt="Mapprr" 
+                className="h-8 w-auto object-contain"
+              />
             </Link>
             <div className="flex items-center gap-3">
               <Link to="/settings" className="flex items-center gap-2">
