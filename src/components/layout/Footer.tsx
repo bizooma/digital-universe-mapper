@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Zap, Twitter, Github, Linkedin } from "lucide-react";
+import { Twitter, Github, Linkedin } from "lucide-react";
+import mapprLogo from "@/assets/mapprr-logo.png";
 
 const footerLinks = {
   Product: [
@@ -40,11 +41,12 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
           {/* Brand */}
           <div className="col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="bg-gradient-primary p-2 rounded-lg">
-                <Zap className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold text-foreground">LinkScape</span>
+            <Link to="/" className="flex items-center mb-4">
+              <img 
+                src={mapprLogo} 
+                alt="Mapprr" 
+                className="h-10 w-auto object-contain"
+              />
             </Link>
             <p className="text-muted-foreground text-sm mb-6 max-w-xs">
               Map your entire digital presence in one beautiful, interactive flowchart.
@@ -87,7 +89,7 @@ export function Footer() {
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} LinkScape. All rights reserved.
+            © {new Date().getFullYear()} Mapprr. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
             Made with ❤️ for digital creators everywhere
