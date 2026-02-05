@@ -34,7 +34,9 @@ export type NodeCategory =
   | "link" 
   | "email" 
   | "ecommerce" 
-  | "content";
+  | "content"
+  | "bbb"
+  | "directories";
 
 export interface LinkNodeData {
   label: string;
@@ -71,6 +73,14 @@ const categoryConfig: Record<NodeCategory, { color: string; gradient: string }> 
   content: { 
     color: "hsl(var(--node-content))", 
     gradient: "from-[hsl(145,60%,45%)] to-[hsl(160,60%,40%)]" 
+  },
+  bbb: { 
+    color: "hsl(var(--node-bbb))", 
+    gradient: "from-[hsl(210,80%,45%)] to-[hsl(220,80%,40%)]" 
+  },
+  directories: { 
+    color: "hsl(var(--node-directories))", 
+    gradient: "from-[hsl(25,85%,55%)] to-[hsl(15,85%,50%)]" 
   },
 };
 

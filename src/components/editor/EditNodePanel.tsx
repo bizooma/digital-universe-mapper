@@ -45,6 +45,8 @@ const categoryIcons: Record<NodeCategory, React.ElementType> = {
   email: Mail,
   ecommerce: ShoppingBag,
   content: FileText,
+  bbb: Globe,
+  directories: Globe,
 };
 
 const platformIcons: Record<string, React.ElementType> = {
