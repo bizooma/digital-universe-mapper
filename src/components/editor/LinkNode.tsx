@@ -1,5 +1,11 @@
 import { memo, useState, useRef, useEffect, useCallback } from "react";
 import { Handle, Position, useReactFlow, type NodeProps } from "@xyflow/react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { 
   Globe, 
   Twitter, 
@@ -219,23 +225,34 @@ function LinkNode({ data, selected }: NodeProps) {
         className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all"
       />
 
-      <div className="flex items-center gap-3">
-        <div
-          className={`w-8 h-8 rounded-lg bg-gradient-to-br ${config.gradient} flex items-center justify-center flex-shrink-0`}
-        >
-          <Icon className="w-4 h-4 text-primary-foreground" />
-        </div>
-        <div className="min-w-0">
-          <p className="font-medium text-foreground text-sm truncate max-w-[120px]">
-            {nodeData.label}
-          </p>
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-8 h-8 rounded-lg bg-gradient-to-br ${config.gradient} flex items-center justify-center flex-shrink-0`}
+              >
+                <Icon className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-medium text-foreground text-sm truncate max-w-[120px]">
+                  {nodeData.label}
+                </p>
+                {nodeData.url && (
+                  <p className="text-xs text-muted-foreground truncate max-w-[120px]">
+                    {nodeData.url.replace(/^https?:\/\//, "")}
+                  </p>
+                )}
+              </div>
+            </div>
+          </TooltipTrigger>
           {nodeData.url && (
-            <p className="text-xs text-muted-foreground truncate max-w-[120px]">
-              {nodeData.url.replace(/^https?:\/\//, "")}
-            </p>
+            <TooltipContent side="bottom" className="max-w-xs break-all">
+              <p className="text-xs">{nodeData.url}</p>
+            </TooltipContent>
           )}
-        </div>
-      </div>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }
