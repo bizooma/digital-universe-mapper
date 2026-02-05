@@ -49,6 +49,24 @@ const plans = [
     notIncluded: [],
     priceKeyMonthly: "pro_monthly" as PriceKey,
     priceKeyYearly: "pro_yearly" as PriceKey,
+    popular: false,
+  },
+  {
+    name: "Pro Plus",
+    monthlyPrice: 15,
+    yearlyPrice: 135,
+    description: "Power user automation",
+    features: [
+      "Everything in Pro",
+      "CSV bulk import",
+      "URL crawler",
+      "Auto-generate maps",
+      "Advanced analytics",
+      "White-label exports",
+    ],
+    notIncluded: [],
+    priceKeyMonthly: "proplus_monthly" as PriceKey,
+    priceKeyYearly: "proplus_yearly" as PriceKey,
     popular: true,
   },
   {
@@ -57,7 +75,7 @@ const plans = [
     yearlyPrice: 192,
     description: "For teams and agencies",
     features: [
-      "Everything in Pro",
+      "Everything in Pro Plus",
       "Up to 5 team members",
       "Shared workspace",
       "Team collaboration",
@@ -88,15 +106,15 @@ const faqs = [
   },
   {
     question: "Is there a limit to how many nodes I can add?",
-    answer: "Free plans are limited to 10 nodes per map. Pro and Team plans have unlimited nodes.",
+    answer: "Free plans are limited to 5 nodes per map. Pro, Pro Plus, and Team plans have unlimited nodes.",
   },
   {
-    question: "Can I export my maps?",
-    answer: "Yes! Free users can export as PNG. Pro and Team users can export as both PNG and PDF.",
+    question: "What is the CSV import feature?",
+    answer: "Pro Plus includes CSV import, allowing you to upload a spreadsheet with your links and automatically create nodes on your map.",
   },
   {
-    question: "Do you offer refunds?",
-    answer: "We offer a 30-day money-back guarantee for all paid plans. If you're not satisfied, contact us for a full refund.",
+    question: "What is the URL crawler?",
+    answer: "The URL crawler (Pro Plus) automatically discovers all pages on a website and creates a map of its structure.",
   },
 ];
 
@@ -156,7 +174,7 @@ export default function Pricing() {
   };
 
   const getButtonText = (planName: string, priceKey: PriceKey | null) => {
-    const planLower = planName.toLowerCase();
+    const planLower = planName.toLowerCase().replace(" ", "");
     
     if (loadingPlan === planName) {
       return (
@@ -197,13 +215,18 @@ export default function Pricing() {
   };
 
   const getButtonVariant = (planName: string, isPopular: boolean) => {
-    const planLower = planName.toLowerCase();
+    const planLower = planName.toLowerCase().replace(" ", "");
     
     if (currentPlan === planLower) {
       return "outline" as const;
     }
     
     return isPopular ? "hero" as const : "outline" as const;
+  };
+
+  const isCurrentPlan = (planName: string) => {
+    const planLower = planName.toLowerCase().replace(" ", "");
+    return currentPlan === planLower;
   };
 
   return (
@@ -272,10 +295,10 @@ export default function Pricing() {
         {/* Pricing Cards */}
         <section className="py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
               {plans.map((plan, index) => {
                 const priceKey = billingCycle === "yearly" ? plan.priceKeyYearly : plan.priceKeyMonthly;
-                const isCurrentPlan = currentPlan === plan.name.toLowerCase();
+                const isPlanCurrent = isCurrentPlan(plan.name);
                 
                 return (
                   <motion.div
@@ -286,7 +309,7 @@ export default function Pricing() {
                     className={`relative rounded-2xl ${
                       plan.popular
                         ? "bg-gradient-to-b from-primary/10 to-transparent border-2 border-primary"
-                        : isCurrentPlan
+                        : isPlanCurrent
                         ? "bg-card border-2 border-primary/50"
                         : "bg-card border border-border"
                     }`}
@@ -299,7 +322,7 @@ export default function Pricing() {
                       </div>
                     )}
 
-                    {isCurrentPlan && !plan.popular && (
+                    {isPlanCurrent && !plan.popular && (
                       <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                         <span className="bg-secondary text-foreground text-sm font-medium px-4 py-1 rounded-full border border-border">
                           Your Plan
@@ -307,12 +330,12 @@ export default function Pricing() {
                       </div>
                     )}
 
-                    <div className="p-8">
+                    <div className="p-6">
                       <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
                       <p className="text-muted-foreground text-sm mt-1">{plan.description}</p>
                       
                       <div className="mt-6">
-                        <span className="text-5xl font-bold text-foreground">
+                        <span className="text-4xl font-bold text-foreground">
                           ${billingCycle === "monthly" ? plan.monthlyPrice : Math.round(plan.yearlyPrice / 12)}
                         </span>
                         <span className="text-muted-foreground">/month</span>
@@ -323,7 +346,7 @@ export default function Pricing() {
                         )}
                       </div>
 
-                      <ul className="mt-8 space-y-4">
+                      <ul className="mt-6 space-y-3">
                         {plan.features.map((feature) => (
                           <li key={feature} className="flex items-start gap-3">
                             <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
@@ -334,10 +357,10 @@ export default function Pricing() {
 
                       <Button
                         variant={getButtonVariant(plan.name, plan.popular)}
-                        className="w-full mt-8"
+                        className="w-full mt-6"
                         size="lg"
                         onClick={() => handlePlanClick(plan.name, priceKey)}
-                        disabled={loadingPlan === plan.name || isCurrentPlan}
+                        disabled={loadingPlan === plan.name || isPlanCurrent}
                       >
                         {getButtonText(plan.name, priceKey)}
                       </Button>

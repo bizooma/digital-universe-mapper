@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "./useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
-export type Plan = "free" | "pro" | "team";
+export type Plan = "free" | "pro" | "proplus" | "team";
 
 interface SubscriptionState {
   plan: Plan;
@@ -22,6 +22,10 @@ export const PLAN_LIMITS = {
     maxMaps: Infinity,
     maxNodesPerMap: Infinity,
   },
+  proplus: {
+    maxMaps: Infinity,
+    maxNodesPerMap: Infinity,
+  },
   team: {
     maxMaps: Infinity,
     maxNodesPerMap: Infinity,
@@ -32,6 +36,8 @@ export const PLAN_LIMITS = {
 export const PRICE_KEYS = {
   pro_monthly: "pro_monthly",
   pro_yearly: "pro_yearly",
+  proplus_monthly: "proplus_monthly",
+  proplus_yearly: "proplus_yearly",
   team_monthly: "team_monthly",
   team_yearly: "team_yearly",
 } as const;
@@ -129,7 +135,8 @@ export function useSubscription() {
 
   return {
     ...state,
-    isPro: state.plan === "pro" || state.plan === "team",
+    isPro: state.plan === "pro" || state.plan === "proplus" || state.plan === "team",
+    isProPlus: state.plan === "proplus" || state.plan === "team",
     isTeam: state.plan === "team",
     isFreeTier: state.plan === "free",
     limits,

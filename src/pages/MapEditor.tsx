@@ -47,6 +47,8 @@ import {
   CloudOff,
   HelpCircle,
   ImagePlus,
+  FileSpreadsheet,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes, type NodeCategory, type LinkNodeData } from "@/components/editor/LinkNode";
@@ -54,6 +56,8 @@ import { AddNodePanel } from "@/components/editor/AddNodePanel";
 import { EditNodePanel } from "@/components/editor/EditNodePanel";
 import { LogoUpload } from "@/components/editor/LogoUpload";
 import { MapLogo } from "@/components/editor/MapLogo";
+import { CSVImportDialog } from "@/components/editor/CSVImportDialog";
+import { URLCrawlerDialog } from "@/components/editor/URLCrawlerDialog";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -131,7 +135,11 @@ function MapEditorInner() {
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoadRef = useRef(true);
   
-  const { isFreeTier, isPro, limits, canAddNode } = useSubscription();
+  // Pro Plus dialogs
+  const [showCSVImportDialog, setShowCSVImportDialog] = useState(false);
+  const [showURLCrawlerDialog, setShowURLCrawlerDialog] = useState(false);
+  
+  const { isFreeTier, isPro, isProPlus, limits, canAddNode } = useSubscription();
   const { user } = useAuth();
   const { getNodes } = useReactFlow();
   
@@ -398,6 +406,52 @@ function MapEditorInner() {
       setNodes((nds) => [...nds, newNode]);
     },
     [setNodes, nodes.length, canAddNode]
+  );
+
+  // Handle bulk import from CSV or URL crawler
+  const handleBulkImport = useCallback(
+    (importedNodes: { label: string; url: string; category: NodeCategory; platform: string; notes: string }[]) => {
+      // Get hub node position for radial layout
+      const hubNode = nodes.find(n => n.type === "hubNode");
+      const centerX = hubNode?.position.x ?? 400;
+      const centerY = hubNode?.position.y ?? 200;
+      const baseRadius = 200;
+      
+      const newNodes: Node[] = importedNodes.map((nodeData, index) => {
+        // Calculate radial position
+        const angle = (index / importedNodes.length) * 2 * Math.PI - Math.PI / 2;
+        const radius = baseRadius + Math.floor(index / 8) * 100; // Expand radius every 8 nodes
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        
+        return {
+          id: `node-${nodeIdCounter.current++}`,
+          type: "linkNode",
+          position: { x, y },
+          data: {
+            label: nodeData.label,
+            url: nodeData.url,
+            category: nodeData.category,
+            platform: nodeData.platform,
+            notes: nodeData.notes,
+          },
+        };
+      });
+      
+      setNodes((nds) => [...nds, ...newNodes]);
+      
+      // Auto-connect to hub if it exists
+      if (hubNode) {
+        const newEdges: Edge[] = newNodes.map((node) => ({
+          id: `edge-${hubNode.id}-${node.id}`,
+          source: hubNode.id,
+          target: node.id,
+          animated: true,
+        }));
+        setEdges((eds) => [...eds, ...newEdges]);
+      }
+    },
+    [nodes, setNodes, setEdges]
   );
 
   const cycleBackground = () => {
@@ -681,7 +735,7 @@ function MapEditorInner() {
                 />
                 <Button onClick={handleCopyLink} size="icon" variant="outline">
                   {copied ? (
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4 text-primary" />
                   ) : (
                     <Copy className="h-4 w-4" />
                   )}
@@ -993,6 +1047,57 @@ function MapEditorInner() {
                 {atNodeLimit ? <Lock className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
               </Button>
               <div className="h-px bg-border" />
+              {/* Pro Plus: CSV Import */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        if (!isProPlus) {
+                          setShowUpgradeDialog(true);
+                        } else {
+                          setShowCSVImportDialog(true);
+                        }
+                      }}
+                      title="Import CSV"
+                    >
+                      <FileSpreadsheet className="h-4 w-4" />
+                      {!isProPlus && <Lock className="h-2 w-2 absolute bottom-1 right-1 opacity-50" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {isProPlus ? "Import from CSV" : "CSV Import (Pro Plus)"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              {/* Pro Plus: URL Crawler */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        if (!isProPlus) {
+                          setShowUpgradeDialog(true);
+                        } else {
+                          setShowURLCrawlerDialog(true);
+                        }
+                      }}
+                      title="URL Crawler"
+                    >
+                      <Globe className="h-4 w-4" />
+                      {!isProPlus && <Lock className="h-2 w-2 absolute bottom-1 right-1 opacity-50" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {isProPlus ? "URL Crawler" : "URL Crawler (Pro Plus)"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <div className="h-px bg-border" />
               <Button
                 variant="ghost"
                 size="icon"
@@ -1070,6 +1175,20 @@ function MapEditorInner() {
         onNext={nextStep}
         onPrev={prevStep}
         onSkip={skipTour}
+      />
+      
+      {/* Pro Plus: CSV Import Dialog */}
+      <CSVImportDialog
+        open={showCSVImportDialog}
+        onOpenChange={setShowCSVImportDialog}
+        onImport={handleBulkImport}
+      />
+      
+      {/* Pro Plus: URL Crawler Dialog */}
+      <URLCrawlerDialog
+        open={showURLCrawlerDialog}
+        onOpenChange={setShowURLCrawlerDialog}
+        onImport={handleBulkImport}
       />
     </div>
   );

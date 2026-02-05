@@ -11,6 +11,8 @@ const corsHeaders = {
 const PRICE_IDS = {
   pro_monthly: "price_1SxBUMEV6sbsDlR8G7x4pjdQ",
   pro_yearly: "price_1SxBUkEV6sbsDlR8Scuv0ASd",
+  proplus_monthly: "price_1SxRLEEV6sbsDlR8Aqy44HYn",
+  proplus_yearly: "price_1SxRLVEV6sbsDlR8KP4fOihK",
   team_monthly: "price_1SxBV2EV6sbsDlR8HfYr1DbT",
   team_yearly: "price_1SxBVHEV6sbsDlR8Fhl4OghL",
 };

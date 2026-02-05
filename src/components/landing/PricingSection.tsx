@@ -36,6 +36,24 @@ const plans = [
       "Custom themes",
     ],
     cta: "Get Started",
+    ctaVariant: "outline" as const,
+    popular: false,
+  },
+  {
+    name: "Pro Plus",
+    price: "$15",
+    period: "/month",
+    yearlyPrice: "$135/year (save 25%)",
+    description: "Power user automation",
+    features: [
+      "Everything in Pro",
+      "CSV bulk import",
+      "URL crawler",
+      "Auto-generate maps",
+      "Advanced analytics",
+      "White-label exports",
+    ],
+    cta: "Get Started",
     ctaVariant: "hero" as const,
     popular: true,
   },
@@ -46,7 +64,7 @@ const plans = [
     yearlyPrice: "$192/year (save 20%)",
     description: "For teams and agencies",
     features: [
-      "Everything in Pro",
+      "Everything in Pro Plus",
       "Up to 5 team members",
       "Shared workspace",
       "Team collaboration",
@@ -95,7 +113,7 @@ export function PricingSection() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {plans.map((plan, index) => (
             <motion.div
               key={plan.name}
@@ -117,7 +135,7 @@ export function PricingSection() {
                 </div>
               )}
 
-              <div className="p-8">
+              <div className="p-6">
                 <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
                 <p className="text-muted-foreground text-sm mt-1">{plan.description}</p>
                 
@@ -129,7 +147,7 @@ export function PricingSection() {
                   )}
                 </div>
 
-                <ul className="mt-8 space-y-4">
+                <ul className="mt-6 space-y-3">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3">
                       <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
@@ -140,7 +158,7 @@ export function PricingSection() {
 
                 <Button
                   variant={plan.ctaVariant}
-                  className="w-full mt-8"
+                  className="w-full mt-6"
                   size="lg"
                   asChild
                 >
