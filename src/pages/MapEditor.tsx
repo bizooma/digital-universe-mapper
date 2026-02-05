@@ -58,6 +58,7 @@ import { LogoUpload } from "@/components/editor/LogoUpload";
 import { MapLogo } from "@/components/editor/MapLogo";
 import { CSVImportDialog } from "@/components/editor/CSVImportDialog";
 import { URLCrawlerDialog } from "@/components/editor/URLCrawlerDialog";
+import { MapSettingsDialog, type MapSettings, DEFAULT_SETTINGS } from "@/components/editor/MapSettingsDialog";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -140,6 +141,8 @@ function MapEditorInner() {
   // Pro Plus dialogs
   const [showCSVImportDialog, setShowCSVImportDialog] = useState(false);
   const [showURLCrawlerDialog, setShowURLCrawlerDialog] = useState(false);
+  const [showMapSettingsDialog, setShowMapSettingsDialog] = useState(false);
+  const [mapSettings, setMapSettings] = useState<MapSettings>(DEFAULT_SETTINGS);
   
   const { isFreeTier, isPro, isProPlus, limits, canAddNode } = useSubscription();
   const { user } = useAuth();
@@ -1014,8 +1017,9 @@ function MapEditorInner() {
           fitView
           className="bg-background"
           defaultEdgeOptions={{
-            style: { strokeWidth: 2, stroke: "hsl(var(--primary))" },
+            style: { strokeWidth: 2, stroke: mapSettings.primaryColor },
             animated: true,
+            type: mapSettings.connectionStyle,
           }}
           edgesReconnectable
           proOptions={{ hideAttribution: true }}
@@ -1135,7 +1139,12 @@ function MapEditorInner() {
                 onLogoChange={setLogoUrl}
                 isPro={isPro}
               />
-              <Button variant="ghost" size="icon" title="Settings">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                title="Map Settings"
+                onClick={() => setShowMapSettingsDialog(true)}
+              >
                 <Settings className="h-4 w-4" />
               </Button>
             </motion.div>
@@ -1202,6 +1211,14 @@ function MapEditorInner() {
         open={showURLCrawlerDialog}
         onOpenChange={setShowURLCrawlerDialog}
         onImport={handleBulkImport}
+      />
+      
+      {/* Map Settings Dialog */}
+      <MapSettingsDialog
+        open={showMapSettingsDialog}
+        onOpenChange={setShowMapSettingsDialog}
+        settings={mapSettings}
+        onSettingsChange={setMapSettings}
       />
     </div>
   );
