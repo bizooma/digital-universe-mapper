@@ -495,17 +495,27 @@ export default function Dashboard() {
               </div>
               <span className="font-bold text-foreground">LinkScape</span>
             </Link>
-            {canCreate ? (
-              <Button variant="hero" size="sm" onClick={handleCreateMap}>
-                <Plus className="h-4 w-4" />
-                New
-              </Button>
-            ) : (
-              <Button variant="hero" size="sm" onClick={handleCreateMap}>
-                <Lock className="h-4 w-4" />
-                New
-              </Button>
-            )}
+            <div className="flex items-center gap-3">
+              <Link to="/settings" className="flex items-center gap-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={avatarUrl || undefined} />
+                  <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs font-medium">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+              {canCreate ? (
+                <Button variant="hero" size="sm" onClick={handleCreateMap}>
+                  <Plus className="h-4 w-4" />
+                  New
+                </Button>
+              ) : (
+                <Button variant="hero" size="sm" onClick={handleCreateMap}>
+                  <Lock className="h-4 w-4" />
+                  New
+                </Button>
+              )}
+            </div>
           </div>
         </header>
 
