@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Zap } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import mapprLogo from "@/assets/mapprr-logo.png";
 
 const navLinks = [
   { label: "Features", href: "/#features" },
@@ -21,14 +22,12 @@ export function Navbar() {
         <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 group">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-primary rounded-lg blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
-                <div className="relative bg-gradient-primary p-2 rounded-lg">
-                  <Zap className="h-5 w-5 text-primary-foreground" />
-                </div>
-              </div>
-              <span className="text-xl font-bold text-foreground">LinkScape</span>
+            <Link to="/" className="flex items-center group">
+              <img 
+                src={mapprLogo} 
+                alt="Mapprr" 
+                className="h-10 w-auto object-contain"
+              />
             </Link>
 
             {/* Desktop Navigation */}
