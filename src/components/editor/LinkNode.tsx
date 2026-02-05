@@ -354,7 +354,10 @@ function HubNode({ data, selected, id }: NodeProps) {
 
 export const HubNodeComponent = memo(HubNode);
 
+import { LogoNodeComponent } from "./LogoNode";
+
 export const nodeTypes = {
   linkNode: LinkNodeComponent,
   hubNode: HubNodeComponent,
+  logoNode: LogoNodeComponent,
 };

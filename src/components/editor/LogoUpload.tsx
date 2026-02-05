@@ -179,7 +179,7 @@ export function LogoUpload({ mapId, logoUrl, onLogoChange, isPro }: LogoUploadPr
         <DialogHeader>
           <DialogTitle>Map Logo</DialogTitle>
           <DialogDescription>
-            Add your logo to appear in the top-left corner of your map exports.
+            Add your logo to the map canvas. You can drag it anywhere you like.
           </DialogDescription>
         </DialogHeader>
 
@@ -243,7 +243,7 @@ export function LogoUpload({ mapId, logoUrl, onLogoChange, isPro }: LogoUploadPr
           </div>
 
           <p className="text-xs text-muted-foreground text-center">
-            Your logo will appear in the top-left corner of exports.
+            Your logo will appear on the canvas. Drag it to reposition.
           </p>
         </div>
       </DialogContent>

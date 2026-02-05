@@ -55,7 +55,6 @@ import { nodeTypes, type NodeCategory, type LinkNodeData } from "@/components/ed
 import { AddNodePanel } from "@/components/editor/AddNodePanel";
 import { EditNodePanel } from "@/components/editor/EditNodePanel";
 import { LogoUpload } from "@/components/editor/LogoUpload";
-import { MapLogo } from "@/components/editor/MapLogo";
 import { CSVImportDialog } from "@/components/editor/CSVImportDialog";
 import { URLCrawlerDialog } from "@/components/editor/URLCrawlerDialog";
 import { MapSettingsDialog, type MapSettings, DEFAULT_SETTINGS } from "@/components/editor/MapSettingsDialog";
@@ -303,6 +302,44 @@ function MapEditorInner() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Sync logo URL with logo node
+  useEffect(() => {
+    if (isInitialLoadRef.current || isLoading) return;
+
+    const existingLogoNode = nodes.find((n) => n.type === "logoNode");
+    
+    if (logoUrl) {
+      if (existingLogoNode) {
+        // Update existing logo node
+        if ((existingLogoNode.data as { logoUrl?: string }).logoUrl !== logoUrl) {
+          setNodes((nds) =>
+            nds.map((node) =>
+              node.type === "logoNode"
+                ? { ...node, data: { ...node.data, logoUrl } }
+                : node
+            )
+          );
+        }
+      } else {
+        // Add new logo node - position in top-left area of canvas
+        const newLogoNode: Node = {
+          id: "logo-node",
+          type: "logoNode",
+          position: { x: 50, y: 50 },
+          data: { logoUrl },
+          draggable: true,
+          selectable: true,
+        };
+        setNodes((nds) => [...nds, newLogoNode]);
+      }
+    } else {
+      // Remove logo node if logo URL is cleared
+      if (existingLogoNode) {
+        setNodes((nds) => nds.filter((n) => n.type !== "logoNode"));
+      }
+    }
+  }, [logoUrl, isLoading, setNodes]);
+
   // Generate a shareable URL
   const shareUrl = `${window.location.origin}/view/${mapId || "new"}`;
 
@@ -343,6 +380,9 @@ function MapEditorInner() {
   // Node click handler for editing
   const onNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node) => {
+      // Don't open edit panel for logo nodes
+      if (node.type === "logoNode") return;
+      
       setSelectedNode(node);
       setIsEditPanelOpen(true);
     },
@@ -1020,8 +1060,6 @@ function MapEditorInner() {
 
       {/* Main Canvas */}
       <div className="flex-1 relative" data-onboarding="canvas">
-        {/* Logo overlay for exports */}
-        {logoUrl && <MapLogo logoUrl={logoUrl} />}
         
         <ReactFlow
           nodes={nodes}

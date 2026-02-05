@@ -15,7 +15,6 @@ import { motion } from "framer-motion";
 import { Zap, Share2, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes } from "@/components/editor/LinkNode";
-import { MapLogo } from "@/components/editor/MapLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -225,8 +224,6 @@ function PublicMapViewInner() {
 
       {/* Main Canvas - Read Only */}
       <div className="flex-1 relative">
-        {/* Logo overlay */}
-        {logoUrl && <MapLogo logoUrl={logoUrl} />}
         
         <ReactFlow
           nodes={nodes}
