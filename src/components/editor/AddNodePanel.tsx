@@ -13,7 +13,8 @@ import {
   X,
   ChevronRight,
   Shield,
-  BookOpen
+  BookOpen,
+  Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -132,6 +133,21 @@ const categories: {
       { id: "lawinfo", label: "LawInfo", icon: BookOpen },
       { id: "hg-org", label: "HG.org", icon: BookOpen },
       { id: "legal-zoom", label: "LegalZoom", icon: BookOpen },
+    ],
+  },
+  {
+    id: "reviews",
+    label: "Reviews",
+    icon: Star,
+    platforms: [
+      { id: "google-reviews", label: "Google Reviews", icon: Star },
+      { id: "facebook-reviews", label: "Facebook Reviews", icon: Star },
+      { id: "trustpilot", label: "Trustpilot", icon: Star },
+      { id: "yelp-reviews", label: "Yelp Reviews", icon: Star },
+      { id: "bbb-reviews", label: "BBB Reviews", icon: Star },
+      { id: "g2", label: "G2", icon: Star },
+      { id: "capterra", label: "Capterra", icon: Star },
+      { id: "clutch", label: "Clutch", icon: Star },
     ],
   },
 ];
