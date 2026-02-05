@@ -309,10 +309,28 @@ function MapEditorInner() {
   const onConnect = useCallback(
     (params: Connection) =>
       setEdges((eds) =>
-        addEdge({ ...params, animated: true }, eds)
+        addEdge({ 
+          ...params, 
+          animated: true,
+          style: { strokeWidth: 2, stroke: mapSettings.primaryColor },
+          type: mapSettings.connectionStyle,
+        }, eds)
       ),
-    [setEdges]
+    [setEdges, mapSettings.primaryColor, mapSettings.connectionStyle]
   );
+
+  // Update all existing edges when map settings change
+  useEffect(() => {
+    if (isInitialLoadRef.current || isLoading) return;
+    
+    setEdges((eds) =>
+      eds.map((edge) => ({
+        ...edge,
+        style: { ...edge.style, strokeWidth: 2, stroke: mapSettings.primaryColor },
+        type: mapSettings.connectionStyle,
+      }))
+    );
+  }, [mapSettings.primaryColor, mapSettings.connectionStyle, setEdges, isLoading]);
 
   const onEdgeClick = useCallback(
     (_event: React.MouseEvent, edge: Edge) => {
