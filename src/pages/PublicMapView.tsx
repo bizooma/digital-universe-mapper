@@ -13,6 +13,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { motion } from "framer-motion";
 import { Share2, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
+import mapprrLogo from "@/assets/mapprr-logo.png";
 import { Button } from "@/components/ui/button";
 import { nodeTypes } from "@/components/editor/LinkNode";
 import { supabase } from "@/integrations/supabase/client";
@@ -203,7 +204,7 @@ function PublicMapViewInner() {
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img 
-              src="/src/assets/mapprr-logo.png" 
+              src={mapprrLogo} 
               alt="Mapprr" 
               className="h-6 w-auto"
             />
@@ -278,7 +279,7 @@ function PublicMapViewInner() {
           to="/"
           className="flex items-center gap-1.5 px-3 py-1.5 bg-card/80 backdrop-blur-xl border border-border rounded-lg text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
-          <img src="/src/assets/mapprr-logo.png" alt="" className="h-3 w-auto" />
+          <img src={mapprrLogo} alt="" className="h-3 w-auto" />
           Made with Mapprr
         </Link>
       </div>
