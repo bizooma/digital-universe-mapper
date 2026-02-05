@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, User, CreditCard, Loader2, Upload, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import mapprLogo from "@/assets/mapprr-logo.png";
 
 export default function Settings() {
   usePageMeta({
@@ -196,11 +197,20 @@ export default function Settings() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+          </div>
+          <Link to="/">
+            <img 
+              src={mapprLogo} 
+              alt="Mapprr" 
+              className="h-8 w-auto object-contain"
+            />
+          </Link>
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
