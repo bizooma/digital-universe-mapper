@@ -146,7 +146,7 @@ export function HeroSection() {
             className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-white/70"
           >
             <AvatarStack />
-            <span>Join 2,500+ creators mapping their digital presence</span>
+            <span>Join other freelancers and agencies mapping their digital presence</span>
           </motion.div>
         </div>
 
