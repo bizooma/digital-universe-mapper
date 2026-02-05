@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Instagram, Twitter, Youtube, Globe, Link2, Mail } from "lucide-react";
-import heroBackground from "@/assets/hero-background.png";
+import heroBackground from "@/assets/hero-background.jpg";
 
 // Avatar data with real images from UI Avatars/reliable sources
 const avatars = [
