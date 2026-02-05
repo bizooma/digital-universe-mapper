@@ -54,7 +54,7 @@ const plans = [
       "SSO integration",
       "API access",
     ],
-    cta: "Contact Sales",
+    cta: "Get Started",
     ctaVariant: "outline" as const,
     popular: false,
   },
