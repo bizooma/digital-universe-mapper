@@ -11,7 +11,9 @@ import {
   ShoppingBag,
   FileText,
   X,
-  ChevronRight
+  ChevronRight,
+  Shield,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,6 +102,30 @@ const categories: {
       { id: "medium", label: "Medium", icon: FileText },
       { id: "substack", label: "Substack", icon: FileText },
       { id: "podcast", label: "Podcast", icon: Globe },
+    ],
+  },
+  {
+    id: "bbb",
+    label: "Better Business Bureau",
+    icon: Shield,
+    platforms: [
+      { id: "bbb", label: "BBB Profile", icon: Shield },
+      { id: "bbb-accredited", label: "BBB Accredited", icon: Shield },
+    ],
+  },
+  {
+    id: "directories",
+    label: "Directories",
+    icon: BookOpen,
+    platforms: [
+      { id: "avvo", label: "Avvo", icon: BookOpen },
+      { id: "google-business", label: "Google Business", icon: Globe },
+      { id: "yelp", label: "Yelp", icon: BookOpen },
+      { id: "findlaw", label: "FindLaw", icon: BookOpen },
+      { id: "justia", label: "Justia", icon: BookOpen },
+      { id: "martindale", label: "Martindale-Hubbell", icon: BookOpen },
+      { id: "lawyers-com", label: "Lawyers.com", icon: BookOpen },
+      { id: "superlawyers", label: "Super Lawyers", icon: BookOpen },
     ],
   },
 ];
