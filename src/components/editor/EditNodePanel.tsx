@@ -47,6 +47,7 @@ const categoryIcons: Record<NodeCategory, React.ElementType> = {
   content: FileText,
   bbb: Globe,
   directories: Globe,
+  reviews: Globe,
 };
 
 const platformIcons: Record<string, React.ElementType> = {
