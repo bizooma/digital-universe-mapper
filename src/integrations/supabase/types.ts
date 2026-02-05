@@ -55,6 +55,7 @@ export type Database = {
           edges: Json
           id: string
           is_public: boolean
+          logo_url: string | null
           name: string
           nodes: Json
           updated_at: string
@@ -65,6 +66,7 @@ export type Database = {
           edges?: Json
           id?: string
           is_public?: boolean
+          logo_url?: string | null
           name?: string
           nodes?: Json
           updated_at?: string
@@ -75,6 +77,7 @@ export type Database = {
           edges?: Json
           id?: string
           is_public?: boolean
+          logo_url?: string | null
           name?: string
           nodes?: Json
           updated_at?: string
