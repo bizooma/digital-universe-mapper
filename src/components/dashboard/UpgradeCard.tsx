@@ -1,33 +1,12 @@
 import { Crown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useSubscription, PriceKey } from "@/hooks/useSubscription";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Link } from "react-router-dom";
 
-interface UpgradeCardProps {
-  billingCycle?: "monthly" | "yearly";
-}
-
-export function UpgradeCard({ billingCycle = "monthly" }: UpgradeCardProps) {
-  const { isFreeTier, createCheckout } = useSubscription();
-  const [loading, setLoading] = useState(false);
+export function UpgradeCard() {
+  const { isFreeTier } = useSubscription();
 
   if (!isFreeTier) return null;
-
-  const handleUpgrade = async () => {
-    setLoading(true);
-    try {
-      const priceKey: PriceKey = billingCycle === "yearly" ? "pro_yearly" : "pro_monthly";
-      const url = await createCheckout(priceKey);
-      if (url) {
-        window.open(url, "_blank");
-      }
-    } catch (err) {
-      toast.error("Failed to start checkout. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
@@ -43,15 +22,12 @@ export function UpgradeCard({ billingCycle = "monthly" }: UpgradeCardProps) {
           <Button
             variant="hero"
             size="sm"
-            onClick={handleUpgrade}
-            disabled={loading}
+            asChild
           >
-            {loading ? "Loading..." : (
-              <>
-                <Sparkles className="h-4 w-4" />
-                Upgrade Now
-              </>
-            )}
+            <Link to="/pricing">
+              <Sparkles className="h-4 w-4" />
+              View Plans
+            </Link>
           </Button>
         </div>
       </div>
