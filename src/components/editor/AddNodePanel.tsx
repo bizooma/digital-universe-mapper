@@ -126,6 +126,12 @@ const categories: {
       { id: "martindale", label: "Martindale-Hubbell", icon: BookOpen },
       { id: "lawyers-com", label: "Lawyers.com", icon: BookOpen },
       { id: "superlawyers", label: "Super Lawyers", icon: BookOpen },
+      { id: "nolo", label: "NOLO", icon: BookOpen },
+      { id: "best-lawyers", label: "Best Lawyers", icon: BookOpen },
+      { id: "state-bar", label: "State Bar Association", icon: BookOpen },
+      { id: "lawinfo", label: "LawInfo", icon: BookOpen },
+      { id: "hg-org", label: "HG.org", icon: BookOpen },
+      { id: "legal-zoom", label: "LegalZoom", icon: BookOpen },
     ],
   },
 ];
