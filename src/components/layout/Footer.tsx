@@ -89,7 +89,15 @@ export function Footer() {
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Mapprr. All rights reserved.
+            Copyright © {new Date().getFullYear()} | All Rights Reserved | Mapprr.com is part of{" "}
+            <a 
+              href="https://bizooma.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              Bizooma, LLC
+            </a>
           </p>
           <p className="text-sm text-muted-foreground">
             Made with ❤️ for digital creators everywhere
