@@ -4,8 +4,9 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Instagram, Twitter, Youtube, Globe, Link2, Mail } from "lucide-react";
+
 import heroBackground from "@/assets/hero-background.jpg";
+import heroMapExample from "@/assets/hero-map-example.png";
 
 // Avatar data with real images from UI Avatars/reliable sources
 const avatars = [
@@ -161,8 +162,12 @@ export function HeroSection() {
           {/* Enhanced glass container with animated border */}
           <div className="relative rounded-2xl p-[1px] bg-gradient-to-r from-primary/50 via-accent/50 to-primary/50 shadow-2xl">
             <div className="glass rounded-2xl p-4">
-              <div className="bg-card rounded-xl overflow-hidden">
-                <MapPreview />
+              <div className="rounded-xl overflow-hidden">
+                <img 
+                  src={heroMapExample} 
+                  alt="Example digital presence map showing connected platforms like LinkedIn, YouTube, Facebook, Instagram, and websites"
+                  className="w-full h-auto"
+                />
               </div>
             </div>
           </div>
@@ -172,130 +177,3 @@ export function HeroSection() {
   );
 }
 
-function MapPreview() {
-  const nodes = [
-    { id: "hub", label: "mysite.com", type: "website", x: 50, y: 50, icon: Globe },
-    { id: "twitter", label: "@username", type: "social", x: 20, y: 30, icon: Twitter },
-    { id: "instagram", label: "@username", type: "social", x: 80, y: 25, icon: Instagram },
-    { id: "youtube", label: "Channel", type: "content", x: 15, y: 70, icon: Youtube },
-    { id: "linktree", label: "linktr.ee/me", type: "link", x: 85, y: 65, icon: Link2 },
-    { id: "newsletter", label: "Newsletter", type: "email", x: 50, y: 85, icon: Mail },
-  ];
-
-  const connections = [
-    { from: "hub", to: "twitter" },
-    { from: "hub", to: "instagram" },
-    { from: "hub", to: "youtube" },
-    { from: "hub", to: "linktree" },
-    { from: "hub", to: "newsletter" },
-    { from: "linktree", to: "instagram" },
-  ];
-
-  const getNodeStyles = (type: string, isHub: boolean) => {
-    const baseStyles: Record<string, { bg: string; border: string; shadow: string }> = {
-      website: { 
-        bg: "bg-gradient-to-br from-primary to-primary/80", 
-        border: "border-primary/50",
-        shadow: "shadow-primary/30"
-      },
-      social: { 
-        bg: "bg-gradient-to-br from-accent to-accent/80", 
-        border: "border-accent/50",
-        shadow: "shadow-accent/30"
-      },
-      content: { 
-        bg: "bg-gradient-to-br from-emerald-500 to-emerald-600", 
-        border: "border-emerald-500/50",
-        shadow: "shadow-emerald-500/30"
-      },
-      link: { 
-        bg: "bg-gradient-to-br from-violet-500 to-violet-600", 
-        border: "border-violet-500/50",
-        shadow: "shadow-violet-500/30"
-      },
-      email: { 
-        bg: "bg-gradient-to-br from-rose-500 to-rose-600", 
-        border: "border-rose-500/50",
-        shadow: "shadow-rose-500/30"
-      },
-    };
-    return baseStyles[type] || baseStyles.website;
-  };
-
-  return (
-    <div className="relative h-80 sm:h-96 canvas-grid bg-card">
-      {/* Animated Connection Lines */}
-      <svg className="absolute inset-0 w-full h-full" style={{ overflow: 'visible' }}>
-        <defs>
-          <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.2" />
-            <stop offset="50%" stopColor="hsl(var(--accent))" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.2" />
-          </linearGradient>
-        </defs>
-        {connections.map((conn, i) => {
-          const from = nodes.find((n) => n.id === conn.from);
-          const to = nodes.find((n) => n.id === conn.to);
-          if (!from || !to) return null;
-          return (
-            <g key={i}>
-              {/* Base line */}
-              <motion.line
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.3 }}
-                transition={{ duration: 1, delay: 0.5 + i * 0.1 }}
-                x1={`${from.x}%`}
-                y1={`${from.y}%`}
-                x2={`${to.x}%`}
-                y2={`${to.y}%`}
-                stroke="hsl(var(--primary))"
-                strokeWidth="2"
-              />
-              {/* Animated flowing line */}
-              <motion.line
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 1, delay: 0.5 + i * 0.1 }}
-                x1={`${from.x}%`}
-                y1={`${from.y}%`}
-                x2={`${to.x}%`}
-                y2={`${to.y}%`}
-                stroke="url(#lineGradient)"
-                strokeWidth="2"
-                strokeDasharray="8 4"
-                className="animate-gradient-flow"
-              />
-            </g>
-          );
-        })}
-      </svg>
-
-      {/* Nodes */}
-      {nodes.map((node, i) => (
-        <motion.div
-          key={node.id}
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.3 + i * 0.1 }}
-          className={`absolute transform -translate-x-1/2 -translate-y-1/2 animate-float-slow`}
-          style={{ 
-            left: `${node.x}%`, 
-            top: `${node.y}%`,
-            animationDelay: `${i * 0.5}s`
-          }}
-        >
-          {/* Hub node glow effect */}
-          {node.id === "hub" && (
-            <div className="absolute inset-0 -m-2 rounded-xl bg-primary/20 blur-xl animate-pulse-glow" />
-          )}
-          <div
-            className={`relative flex items-center gap-2 px-4 py-2 rounded-xl ${getNodeStyles(node.type, node.id === "hub").bg} border ${getNodeStyles(node.type, node.id === "hub").border} text-white text-sm font-medium shadow-lg ${getNodeStyles(node.type, node.id === "hub").shadow} backdrop-blur-sm ${node.id === "hub" ? "px-5 py-3 text-base" : ""} hover:scale-105 transition-transform cursor-pointer`}
-          >
-            <node.icon className={`${node.id === "hub" ? "h-5 w-5" : "h-4 w-4"}`} />
-            {node.label}
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  );
-}
