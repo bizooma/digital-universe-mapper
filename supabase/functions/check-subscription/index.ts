@@ -11,6 +11,8 @@ const corsHeaders = {
 const PRODUCT_IDS = {
   pro: "prod_Tv1XmbuF1Eq9mD",
   pro_yearly: "prod_Tv1Xpev3vVpb63",
+  proplus: "prod_TvHvzw0LtqJdTG",
+  proplus_yearly: "prod_TvHvO0TaHthQYE",
   team: "prod_Tv1YL0NqFMF2J6",
   team_yearly: "prod_Tv1Y02rLWusFXX",
 };
@@ -113,6 +115,8 @@ serve(async (req) => {
     let plan = "free";
     if (productId === PRODUCT_IDS.pro || productId === PRODUCT_IDS.pro_yearly) {
       plan = "pro";
+    } else if (productId === PRODUCT_IDS.proplus || productId === PRODUCT_IDS.proplus_yearly) {
+      plan = "proplus";
     } else if (productId === PRODUCT_IDS.team || productId === PRODUCT_IDS.team_yearly) {
       plan = "team";
     }
