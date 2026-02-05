@@ -471,7 +471,7 @@ export default function Dashboard() {
                 <Settings className="h-4 w-4" />
               </Link>
             </Button>
-            {isPro && (
+            {isPro ? (
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -480,6 +480,12 @@ export default function Dashboard() {
                 disabled={portalLoading}
               >
                 <CreditCard className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button variant="ghost" size="sm" className="flex-1" asChild>
+                <Link to="/pricing">
+                  <Crown className="h-4 w-4" />
+                </Link>
               </Button>
             )}
             <Button variant="ghost" size="sm" className="flex-1" onClick={handleSignOut}>
