@@ -1,18 +1,23 @@
 import { motion } from "framer-motion";
-import { Users, Presentation, FolderOpen, Send, Sparkles, Building2 } from "lucide-react";
+import { Users, Presentation, FolderOpen, Send, Sparkles, Building2, ImagePlus, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 const benefits = [
+  {
+    icon: ImagePlus,
+    title: "Brand it with your logo",
+    description: "Add your agency or client logo to every map for polished, professional deliverables.",
+  },
   {
     icon: Presentation,
     title: "Impress in client pitches",
     description: "Visualize their fragmented digital presence and show exactly how you'll unify it.",
   },
   {
-    icon: FolderOpen,
-    title: "Organize by client",
-    description: "Keep every client's digital ecosystem in one place. Easy to manage, easy to update.",
+    icon: FileDown,
+    title: "Export-ready presentations",
+    description: "Download high-res PNGs and PDFs with your branding—ready to share or present.",
   },
   {
     icon: Send,
@@ -105,11 +110,11 @@ export function AgenciesSection() {
             
             {/* Client presentation mockup */}
             <div className="relative bg-card/80 backdrop-blur-xl border border-border rounded-2xl p-6 shadow-2xl">
-              {/* Header */}
+              {/* Header with client logo */}
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                    <Users className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-md">
+                    <span className="text-white font-bold text-xs">AC</span>
                   </div>
                   <div>
                     <p className="font-semibold text-foreground">Acme Corp</p>
@@ -121,8 +126,23 @@ export function AgenciesSection() {
                 </div>
               </div>
 
-              {/* Mini map preview */}
+              {/* Mini map preview with logo */}
               <div className="relative h-48 rounded-xl bg-muted/50 border border-border overflow-hidden canvas-dots mb-4">
+                {/* Client logo in top-left */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.5 }}
+                  className="absolute top-2 left-2 z-10"
+                >
+                  <div className="bg-card/90 backdrop-blur-sm border border-border rounded-md px-2 py-1 shadow-sm flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                      <span className="text-white font-bold text-[8px]">AC</span>
+                    </div>
+                    <span className="text-[10px] font-medium text-foreground">Acme Corp</span>
+                  </div>
+                </motion.div>
                 {/* Simplified node visualization */}
                 <svg className="absolute inset-0 w-full h-full">
                   <defs>
