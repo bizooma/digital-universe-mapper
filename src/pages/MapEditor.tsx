@@ -116,6 +116,8 @@ function MapEditorInner() {
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [upgradeLimitType, setUpgradeLimitType] = useState<"maps" | "nodes" | "feature">("nodes");
+  const [upgradeFeatureName, setUpgradeFeatureName] = useState<string | undefined>(undefined);
   const [backgroundVariant, setBackgroundVariant] = useState<"dots" | "lines" | "cross">("dots");
   const nodeIdCounter = useRef(5);
   const [mapName, setMapName] = useState("Untitled Map");
@@ -371,6 +373,8 @@ function MapEditorInner() {
 
   const handleOpenAddPanel = () => {
     if (!canAddNode(nodes.length)) {
+      setUpgradeLimitType("nodes");
+      setUpgradeFeatureName(undefined);
       setShowUpgradeDialog(true);
       return;
     }
@@ -387,6 +391,8 @@ function MapEditorInner() {
     }) => {
       // Double-check limit before adding
       if (!canAddNode(nodes.length)) {
+        setUpgradeLimitType("nodes");
+        setUpgradeFeatureName(undefined);
         setShowUpgradeDialog(true);
         return;
       }
@@ -828,9 +834,10 @@ function MapEditorInner() {
       <UpgradeLimitDialog
         open={showUpgradeDialog}
         onOpenChange={setShowUpgradeDialog}
-        limitType="nodes"
+        limitType={upgradeLimitType}
         currentCount={nodes.length}
         maxCount={limits.maxNodesPerMap}
+        featureName={upgradeFeatureName}
       />
 
       {/* Top Toolbar */}
@@ -1056,6 +1063,8 @@ function MapEditorInner() {
                       size="icon"
                       onClick={() => {
                         if (!isProPlus) {
+                          setUpgradeLimitType("feature");
+                          setUpgradeFeatureName("CSV Import");
                           setShowUpgradeDialog(true);
                         } else {
                           setShowCSVImportDialog(true);
@@ -1081,6 +1090,8 @@ function MapEditorInner() {
                       size="icon"
                       onClick={() => {
                         if (!isProPlus) {
+                          setUpgradeLimitType("feature");
+                          setUpgradeFeatureName("URL Crawler");
                           setShowUpgradeDialog(true);
                         } else {
                           setShowURLCrawlerDialog(true);
