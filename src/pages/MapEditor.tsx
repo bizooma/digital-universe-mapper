@@ -46,11 +46,14 @@ import {
   Cloud,
   CloudOff,
   HelpCircle,
+  ImagePlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes, type NodeCategory, type LinkNodeData } from "@/components/editor/LinkNode";
 import { AddNodePanel } from "@/components/editor/AddNodePanel";
 import { EditNodePanel } from "@/components/editor/EditNodePanel";
+import { LogoUpload } from "@/components/editor/LogoUpload";
+import { MapLogo } from "@/components/editor/MapLogo";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -120,6 +123,7 @@ function MapEditorInner() {
   const [isLoading, setIsLoading] = useState(!isNewMap);
   const [mapId, setMapId] = useState<string | null>(isNewMap ? null : id || null);
   const [isPublic, setIsPublic] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [isTogglingPublic, setIsTogglingPublic] = useState(false);
   
   // Auto-save state
@@ -179,6 +183,7 @@ function MapEditorInner() {
           setEdges(loadedEdges);
           setMapId(data.id);
           setIsPublic(data.is_public || false);
+          setLogoUrl(data.logo_url || null);
           
           // Initialize history with loaded state
           resetHistory(loadedNodes, loadedEdges);
@@ -215,6 +220,7 @@ function MapEditorInner() {
           name: mapName,
           nodes: JSON.parse(JSON.stringify(nodes)),
           edges: JSON.parse(JSON.stringify(edges)),
+          logo_url: logoUrl,
         })
         .eq("id", mapId);
 
@@ -224,7 +230,7 @@ function MapEditorInner() {
       console.error("Auto-save error:", err);
       setSaveStatus("unsaved");
     }
-  }, [user, mapId, mapName, nodes, edges]);
+  }, [user, mapId, mapName, nodes, edges, logoUrl]);
 
   // Trigger auto-save when nodes or edges change (debounced)
   useEffect(() => {
@@ -423,6 +429,7 @@ function MapEditorInner() {
             name: mapName,
             nodes: JSON.parse(JSON.stringify(nodes)),
             edges: JSON.parse(JSON.stringify(edges)),
+            logo_url: logoUrl,
           })
           .eq("id", mapId);
 
@@ -441,6 +448,7 @@ function MapEditorInner() {
             name: mapName,
             nodes: JSON.parse(JSON.stringify(nodes)),
             edges: JSON.parse(JSON.stringify(edges)),
+            logo_url: logoUrl,
           }])
           .select()
           .single();
@@ -930,6 +938,9 @@ function MapEditorInner() {
 
       {/* Main Canvas */}
       <div className="flex-1 relative" data-onboarding="canvas">
+        {/* Logo overlay for exports */}
+        {logoUrl && <MapLogo logoUrl={logoUrl} />}
+        
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -999,6 +1010,13 @@ function MapEditorInner() {
               <Button variant="ghost" size="icon" title="Auto Layout">
                 <Maximize2 className="h-4 w-4" />
               </Button>
+              <div className="h-px bg-border" />
+              <LogoUpload
+                mapId={mapId}
+                logoUrl={logoUrl}
+                onLogoChange={setLogoUrl}
+                isPro={isPro}
+              />
               <Button variant="ghost" size="icon" title="Settings">
                 <Settings className="h-4 w-4" />
               </Button>

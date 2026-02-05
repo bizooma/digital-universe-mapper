@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import { Zap, Share2, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes } from "@/components/editor/LinkNode";
+import { MapLogo } from "@/components/editor/MapLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -31,6 +32,7 @@ function PublicMapViewInner() {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [mapName, setMapName] = useState("");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -86,6 +88,7 @@ function PublicMapViewInner() {
         setMapName(data.name);
         setNodes((data.nodes as unknown) as Node[]);
         setEdges((data.edges as unknown) as Edge[]);
+        setLogoUrl(data.logo_url || null);
       } catch (err) {
         console.error("Error loading map:", err);
         setError("Failed to load map");
@@ -222,6 +225,9 @@ function PublicMapViewInner() {
 
       {/* Main Canvas - Read Only */}
       <div className="flex-1 relative">
+        {/* Logo overlay */}
+        {logoUrl && <MapLogo logoUrl={logoUrl} />}
+        
         <ReactFlow
           nodes={nodes}
           edges={edges}
