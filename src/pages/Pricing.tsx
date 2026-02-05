@@ -132,8 +132,20 @@ export default function Pricing() {
   const { plan: currentPlan, createCheckout, openCustomerPortal, isPro } = useSubscription();
   const navigate = useNavigate();
 
+  // Plan hierarchy for comparison
+  const planHierarchy: Record<string, number> = {
+    free: 0,
+    pro: 1,
+    proplus: 2,
+    team: 3,
+  };
+
   const handlePlanClick = async (planName: string, priceKey: PriceKey | null) => {
-    // Free plan - redirect to signup
+    const targetPlan = planName.toLowerCase().replace(" ", "");
+    const currentPlanLevel = planHierarchy[currentPlan] ?? 0;
+    const targetPlanLevel = planHierarchy[targetPlan] ?? 0;
+
+    // Free plan - redirect to signup or dashboard
     if (!priceKey) {
       if (user) {
         navigate("/dashboard");
@@ -150,8 +162,13 @@ export default function Pricing() {
       return;
     }
 
-    // Already on a plan - open portal to manage
-    if (isPro) {
+    // Current plan - do nothing
+    if (currentPlan === targetPlan) {
+      return;
+    }
+
+    // Downgrade - open portal to manage
+    if (targetPlanLevel < currentPlanLevel) {
       setLoadingPlan(planName);
       try {
         const url = await openCustomerPortal();
@@ -166,7 +183,7 @@ export default function Pricing() {
       return;
     }
 
-    // Start checkout
+    // Upgrade (including from free) - start checkout
     setLoadingPlan(planName);
     try {
       const url = await createCheckout(priceKey);
@@ -182,6 +199,8 @@ export default function Pricing() {
 
   const getButtonText = (planName: string, priceKey: PriceKey | null) => {
     const planLower = planName.toLowerCase().replace(" ", "");
+    const currentPlanLevel = planHierarchy[currentPlan] ?? 0;
+    const targetPlanLevel = planHierarchy[planLower] ?? 0;
     
     if (loadingPlan === planName) {
       return (
@@ -207,15 +226,15 @@ export default function Pricing() {
       return user ? "Go to Dashboard" : "Get Started Free";
     }
 
-    // User is on a paid plan - show manage
-    if (isPro) {
+    // Downgrade
+    if (targetPlanLevel < currentPlanLevel) {
       return "Manage Subscription";
     }
 
-    // User is on free - show upgrade
+    // Upgrade
     return (
       <>
-        Get Started
+        Upgrade
         <ArrowRight className="h-4 w-4 ml-2" />
       </>
     );
