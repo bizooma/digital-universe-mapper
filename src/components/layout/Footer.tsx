@@ -99,9 +99,6 @@ export function Footer() {
               Bizooma, LLC
             </a>
           </p>
-          <p className="text-sm text-muted-foreground">
-            Made with ❤️ for digital creators everywhere
-          </p>
         </div>
       </div>
     </footer>
