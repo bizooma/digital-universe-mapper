@@ -666,7 +666,7 @@ function MapEditorInner() {
 
     // Generate the PNG
     const dataUrl = await toPng(viewport, {
-      backgroundColor: "hsl(240, 10%, 4%)", // Match background color
+      backgroundColor: "#ffffff", // White background for exports
       width: imageWidth,
       height: imageHeight,
       style: {
