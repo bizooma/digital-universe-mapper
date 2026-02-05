@@ -20,8 +20,10 @@ import {
   Pencil,
   Check,
   X,
-  BarChart3
+  BarChart3,
+  Sparkles
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef } from "react";
@@ -77,7 +79,7 @@ export default function Dashboard() {
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
   const { user, signOut } = useAuth();
-  const { plan, isPro, isFreeTier, limits, canCreateMap, checkSubscription, openCustomerPortal } = useSubscription();
+  const { plan, isPro, isProPlus, isFreeTier, limits, canCreateMap, checkSubscription, openCustomerPortal } = useSubscription();
   const [portalLoading, setPortalLoading] = useState(false);
 
   // Fetch user's maps from database
@@ -307,7 +309,7 @@ export default function Dashboard() {
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
-  const planLabel = plan === "team" ? "Team Plan" : plan === "pro" ? "Pro Plan" : "Free Plan";
+  const planLabel = plan === "team" ? "Team Plan" : plan === "proplus" ? "Pro Plus" : plan === "pro" ? "Pro Plan" : "Free Plan";
   const canCreate = canCreateMap(currentMapCount);
 
   const totalNodes = userMaps.reduce((sum, m) => sum + (m.nodes?.length || 0), 0);
@@ -418,8 +420,19 @@ export default function Dashboard() {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
               <div className="flex items-center gap-1.5">
-                {isPro && <Crown className="h-3 w-3 text-primary" />}
-                <p className="text-xs text-muted-foreground truncate">{planLabel}</p>
+                {isProPlus ? (
+                  <Badge className="bg-gradient-to-r from-primary to-accent text-primary-foreground text-[10px] px-1.5 py-0 h-4 gap-1">
+                    <Sparkles className="h-2.5 w-2.5" />
+                    Pro Plus
+                  </Badge>
+                ) : isPro ? (
+                  <>
+                    <Crown className="h-3 w-3 text-primary" />
+                    <p className="text-xs text-muted-foreground truncate">{planLabel}</p>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground truncate">{planLabel}</p>
+                )}
               </div>
             </div>
           </div>
