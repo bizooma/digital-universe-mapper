@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Zap,
   ChevronLeft,
   Eye,
   TrendingUp,
@@ -12,6 +11,7 @@ import {
   Loader2,
   Lock,
 } from "lucide-react";
+import mapprLogo from "@/assets/mapprr-logo.png";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -221,10 +221,12 @@ export default function Analytics() {
               <ChevronLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <div className="flex items-center gap-2">
-            <div className="bg-gradient-primary p-1.5 rounded-lg">
-              <Zap className="h-4 w-4 text-primary-foreground" />
-            </div>
+          <div className="flex items-center gap-3">
+            <img 
+              src={mapprLogo} 
+              alt="Mapprr" 
+              className="h-7 w-auto object-contain"
+            />
             <span className="font-medium text-foreground">Analytics</span>
           </div>
         </div>
