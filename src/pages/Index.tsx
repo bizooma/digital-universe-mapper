@@ -5,8 +5,10 @@ import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { AgenciesSection } from "@/components/landing/AgenciesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { CTASection } from "@/components/landing/CTASection";
+import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
 
 const Index = () => {
+  useCanonicalUrl();
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
