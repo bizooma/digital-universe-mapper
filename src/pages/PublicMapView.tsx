@@ -12,7 +12,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { motion } from "framer-motion";
-import { Zap, Share2, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
+import { Share2, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes } from "@/components/editor/LinkNode";
 import { supabase } from "@/integrations/supabase/client";
@@ -175,7 +175,7 @@ function PublicMapViewInner() {
               className="flex-1"
               onClick={() => {
                 window.open(
-                  `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out ${mapName} on LinkScape!`)}`,
+                  `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out ${mapName} on Mapprr!`)}`,
                   "_blank"
                 );
               }}
@@ -202,10 +202,11 @@ function PublicMapViewInner() {
       <header className="h-14 bg-card/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-4 z-20">
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="bg-gradient-primary p-1.5 rounded-lg">
-              <Zap className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-foreground">LinkScape</span>
+            <img 
+              src="/src/assets/mapprr-logo.png" 
+              alt="Mapprr" 
+              className="h-6 w-auto"
+            />
           </Link>
           <div className="h-6 w-px bg-border" />
           <span className="font-medium text-foreground">{mapName}</span>
@@ -277,8 +278,8 @@ function PublicMapViewInner() {
           to="/"
           className="flex items-center gap-1.5 px-3 py-1.5 bg-card/80 backdrop-blur-xl border border-border rounded-lg text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
-          <Zap className="h-3 w-3" />
-          Made with LinkScape
+          <img src="/src/assets/mapprr-logo.png" alt="" className="h-3 w-auto" />
+          Made with Mapprr
         </Link>
       </div>
     </div>
