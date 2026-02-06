@@ -22,7 +22,7 @@ const plans = [
       "Up to 5 nodes per map",
       "PNG export",
       "Basic support",
-      "LinkScape watermark",
+      "Mapprr watermark",
     ],
     notIncluded: [
       "Custom shareable URL",
