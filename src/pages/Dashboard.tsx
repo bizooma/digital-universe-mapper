@@ -20,7 +20,8 @@ import {
   Check,
   X,
   BarChart3,
-  Sparkles
+  Sparkles,
+  Shield
 } from "lucide-react";
 import mapprLogo from "@/assets/mapprr-logo.png";
 import { Badge } from "@/components/ui/badge";
@@ -85,7 +86,7 @@ export default function Dashboard() {
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
   const { user, signOut } = useAuth();
-  const { plan, isPro, isProPlus, isFreeTier, limits, canCreateMap, checkSubscription, openCustomerPortal } = useSubscription();
+  const { plan, isPro, isProPlus, isFreeTier, isAdmin, limits, canCreateMap, checkSubscription, openCustomerPortal } = useSubscription();
   const [portalLoading, setPortalLoading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
@@ -427,6 +428,15 @@ export default function Dashboard() {
               >
                 <BarChart3 className="h-4 w-4" />
                 Analytics
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
+              >
+                <Shield className="h-4 w-4" />
+                Admin
               </Link>
             )}
           </div>

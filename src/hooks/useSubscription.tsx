@@ -10,6 +10,7 @@ interface SubscriptionState {
   subscriptionEnd: string | null;
   loading: boolean;
   error: string | null;
+  isAdmin: boolean;
 }
 
 // Plan limits
@@ -52,6 +53,7 @@ export function useSubscription() {
     subscriptionEnd: null,
     loading: true,
     error: null,
+    isAdmin: false,
   });
 
   const checkSubscription = useCallback(async () => {
@@ -62,6 +64,7 @@ export function useSubscription() {
         subscriptionEnd: null,
         loading: false,
         error: null,
+        isAdmin: false,
       });
       return;
     }
@@ -79,6 +82,7 @@ export function useSubscription() {
         subscriptionEnd: data.subscription_end || null,
         loading: false,
         error: null,
+        isAdmin: data.is_admin || false,
       });
     } catch (err) {
       console.error("Error checking subscription:", err);
@@ -139,6 +143,7 @@ export function useSubscription() {
     isProPlus: state.plan === "proplus" || state.plan === "team",
     isTeam: state.plan === "team",
     isFreeTier: state.plan === "free",
+    isAdmin: state.isAdmin,
     limits,
     canCreateMap: (currentMapCount: number) => currentMapCount < limits.maxMaps,
     canAddNode: (currentNodeCount: number) => currentNodeCount < limits.maxNodesPerMap,
