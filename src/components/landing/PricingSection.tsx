@@ -14,7 +14,7 @@ const plans = [
       "Up to 5 nodes per map",
       "PNG export",
       "Basic support",
-      "LinkScape watermark",
+      "Mapprr watermark",
     ],
     cta: "Get Started",
     ctaVariant: "outline" as const,
