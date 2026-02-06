@@ -35,3 +35,9 @@ verify_jwt = false
 
 [functions.cancel-team-invite]
 verify_jwt = false
+
+[functions.create-lifetime-checkout]
+verify_jwt = false
+
+[functions.verify-lifetime-purchase]
+verify_jwt = false

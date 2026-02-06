@@ -159,7 +159,31 @@ export default function Dashboard() {
   // Check for upgrade success/cancel from URL params
   useEffect(() => {
     const upgradeStatus = searchParams.get("upgrade");
-    if (upgradeStatus === "success") {
+    const lifetimeStatus = searchParams.get("lifetime");
+    const sessionId = searchParams.get("session_id");
+    
+    if (lifetimeStatus === "success" && sessionId) {
+      // Verify the lifetime purchase
+      const verifyLifetimePurchase = async () => {
+        try {
+          const { data, error } = await supabase.functions.invoke("verify-lifetime-purchase", {
+            body: { session_id: sessionId }
+          });
+          
+          if (error) {
+            console.error("Lifetime verification error:", error);
+            toast.error("Failed to verify purchase. Please contact support.");
+          } else if (data?.success) {
+            toast.success("🎉 Welcome to Pro Plus Lifetime! Your access is now permanent.");
+            checkSubscription();
+          }
+        } catch (err) {
+          console.error("Lifetime verification error:", err);
+          toast.error("Failed to verify purchase. Please contact support.");
+        }
+      };
+      verifyLifetimePurchase();
+    } else if (upgradeStatus === "success") {
       toast.success("Welcome to Pro! Your subscription is now active.");
       checkSubscription();
     } else if (upgradeStatus === "canceled") {

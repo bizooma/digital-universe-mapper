@@ -69,6 +69,27 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Check for lifetime purchase first
+    const { data: lifetimePurchase, error: lifetimeError } = await supabaseClient
+      .from("lifetime_purchases")
+      .select("plan")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (lifetimePurchase && !lifetimeError) {
+      logStep("User has lifetime purchase", { plan: lifetimePurchase.plan });
+      return new Response(JSON.stringify({
+        subscribed: true,
+        plan: lifetimePurchase.plan,
+        subscription_end: null,
+        is_admin: false,
+        is_lifetime: true,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // Check if user is admin - admins get team tier automatically
     const isAdmin = await checkAdminRole(supabaseClient, user.id);
     if (isAdmin) {
@@ -78,6 +99,7 @@ serve(async (req) => {
         plan: "team",
         subscription_end: null,
         is_admin: true,
+        is_lifetime: false,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -94,6 +116,7 @@ serve(async (req) => {
         plan: "free",
         subscription_end: null,
         is_admin: false,
+        is_lifetime: false,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -116,6 +139,7 @@ serve(async (req) => {
         plan: "free",
         subscription_end: null,
         is_admin: false,
+        is_lifetime: false,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -164,6 +188,7 @@ serve(async (req) => {
       subscription_end: subscriptionEnd,
       product_id: productId,
       is_admin: false,
+      is_lifetime: false,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
