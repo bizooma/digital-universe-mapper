@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Globe, Loader2, AlertCircle, Check, ExternalLink, Lock, Sparkles } from "lucide-react";
+import { Globe, Loader2, AlertCircle, Check, ExternalLink, Lock, Sparkles, Network, GitBranch } from "lucide-react";
 import { mapTemplates, type MapTemplate } from "@/data/mapTemplates";
 import {
   Dialog,
@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { firecrawlApi } from "@/lib/api/firecrawl";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +35,8 @@ interface DiscoveredURL {
   label: string;
   selected: boolean;
 }
+
+type LayoutMode = 'radial' | 'hierarchical';
 
 // Generate label from URL path
 function getLabelFromURL(url: string): string {
@@ -56,12 +59,21 @@ function getLabelFromURL(url: string): string {
   }
 }
 
-// Create nodes and edges from URLs
-function createMapFromUrls(urls: DiscoveredURL[], siteUrl: string): { nodes: Node[]; edges: Edge[] } {
+// Get URL path segments for hierarchy
+function getPathSegments(url: string): string[] {
+  try {
+    const parsed = new URL(url);
+    return parsed.pathname.split("/").filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+// Create radial layout - all nodes around hub
+function createRadialLayout(urls: DiscoveredURL[], siteUrl: string): { nodes: Node[]; edges: Edge[] } {
   const hubLabel = getLabelFromURL(siteUrl);
   const selectedUrls = urls.filter(u => u.selected);
   
-  // Create hub node at center
   const nodes: Node[] = [
     {
       id: "hub",
@@ -73,7 +85,6 @@ function createMapFromUrls(urls: DiscoveredURL[], siteUrl: string): { nodes: Nod
 
   const edges: Edge[] = [];
 
-  // Position nodes in a radial layout around the hub
   const radius = 200;
   const angleStep = (2 * Math.PI) / Math.max(selectedUrls.length, 1);
 
@@ -107,6 +118,140 @@ function createMapFromUrls(urls: DiscoveredURL[], siteUrl: string): { nodes: Nod
   return { nodes, edges };
 }
 
+// Create hierarchical tree layout based on URL paths
+function createHierarchicalLayout(urls: DiscoveredURL[], siteUrl: string): { nodes: Node[]; edges: Edge[] } {
+  const hubLabel = getLabelFromURL(siteUrl);
+  const selectedUrls = urls.filter(u => u.selected);
+  
+  // Build tree structure from URLs
+  interface TreeNode {
+    url: string;
+    label: string;
+    path: string;
+    children: TreeNode[];
+    nodeId?: string;
+  }
+
+  const root: TreeNode = {
+    url: siteUrl,
+    label: hubLabel,
+    path: "",
+    children: [],
+  };
+
+  // Map paths to nodes for parent lookup
+  const pathMap = new Map<string, TreeNode>();
+  pathMap.set("", root);
+
+  // Sort URLs by path depth (shorter first)
+  const sortedUrls = [...selectedUrls].sort((a, b) => {
+    const aSegments = getPathSegments(a.url).length;
+    const bSegments = getPathSegments(b.url).length;
+    return aSegments - bSegments;
+  });
+
+  // Build tree
+  sortedUrls.forEach(urlData => {
+    const segments = getPathSegments(urlData.url);
+    if (segments.length === 0) return; // Skip root URLs
+    
+    const fullPath = segments.join("/");
+    
+    // Find parent
+    let parentPath = "";
+    for (let i = segments.length - 1; i >= 0; i--) {
+      const testPath = segments.slice(0, i).join("/");
+      if (pathMap.has(testPath)) {
+        parentPath = testPath;
+        break;
+      }
+    }
+
+    const parent = pathMap.get(parentPath) || root;
+    const newNode: TreeNode = {
+      url: urlData.url,
+      label: urlData.label,
+      path: fullPath,
+      children: [],
+    };
+    parent.children.push(newNode);
+    pathMap.set(fullPath, newNode);
+  });
+
+  // Layout constants
+  const levelHeight = 120;
+  const nodeWidth = 180;
+  const nodeSpacing = 40;
+
+  // Calculate positions using tree traversal
+  const nodes: Node[] = [];
+  const edges: Edge[] = [];
+
+  // Calculate subtree widths
+  function getSubtreeWidth(node: TreeNode): number {
+    if (node.children.length === 0) return nodeWidth;
+    return node.children.reduce((sum, child) => sum + getSubtreeWidth(child), 0) + 
+           (node.children.length - 1) * nodeSpacing;
+  }
+
+  // Position nodes
+  let nodeIndex = 0;
+  function positionNode(node: TreeNode, x: number, y: number, isRoot: boolean): string {
+    const nodeId = isRoot ? "hub" : `node-${nodeIndex++}`;
+    node.nodeId = nodeId;
+
+    nodes.push({
+      id: nodeId,
+      type: isRoot ? "logo" : "link",
+      position: { x, y },
+      data: isRoot 
+        ? { label: node.label, isHub: true }
+        : {
+            label: node.label,
+            url: node.url,
+            category: "website",
+            platform: "website",
+            notes: "",
+          },
+    });
+
+    // Position children
+    if (node.children.length > 0) {
+      const totalWidth = getSubtreeWidth(node);
+      let currentX = x - totalWidth / 2;
+
+      node.children.forEach(child => {
+        const childWidth = getSubtreeWidth(child);
+        const childX = currentX + childWidth / 2;
+        const childNodeId = positionNode(child, childX, y + levelHeight, false);
+        
+        edges.push({
+          id: `edge-${nodeId}-${childNodeId}`,
+          source: nodeId,
+          target: childNodeId,
+          type: "smoothstep",
+        });
+
+        currentX += childWidth + nodeSpacing;
+      });
+    }
+
+    return nodeId;
+  }
+
+  positionNode(root, 0, 0, true);
+
+  return { nodes, edges };
+}
+
+// Create nodes and edges from URLs based on layout mode
+function createMapFromUrls(urls: DiscoveredURL[], siteUrl: string, layoutMode: LayoutMode): { nodes: Node[]; edges: Edge[] } {
+  if (layoutMode === 'hierarchical') {
+    return createHierarchicalLayout(urls, siteUrl);
+  }
+  return createRadialLayout(urls, siteUrl);
+}
+
 export function TemplateSelector({ open, onOpenChange, onSelect }: TemplateSelectorProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -119,6 +264,7 @@ export function TemplateSelector({ open, onOpenChange, onSelect }: TemplateSelec
   const [isCreatingMap, setIsCreatingMap] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [discoveredUrls, setDiscoveredUrls] = useState<DiscoveredURL[]>([]);
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('radial');
 
   const handleUrlCrawlerClick = () => {
     if (!isProPlus) {
@@ -205,7 +351,7 @@ export function TemplateSelector({ open, onOpenChange, onSelect }: TemplateSelec
 
     try {
       // Create nodes and edges
-      const { nodes, edges } = createMapFromUrls(discoveredUrls, inputUrl);
+      const { nodes, edges } = createMapFromUrls(discoveredUrls, inputUrl, layoutMode);
 
       // Save map to database
       const { data: newMap, error: insertError } = await supabase
@@ -238,6 +384,7 @@ export function TemplateSelector({ open, onOpenChange, onSelect }: TemplateSelec
     setDiscoveredUrls([]);
     setInputUrl("");
     setError(null);
+    setLayoutMode('radial');
   };
 
   const handleBack = () => {
@@ -245,6 +392,7 @@ export function TemplateSelector({ open, onOpenChange, onSelect }: TemplateSelec
     setDiscoveredUrls([]);
     setInputUrl("");
     setError(null);
+    setLayoutMode('radial');
   };
 
   const selectedCount = discoveredUrls.filter(u => u.selected).length;
@@ -303,62 +451,100 @@ export function TemplateSelector({ open, onOpenChange, onSelect }: TemplateSelec
 
             {/* Results */}
             {discoveredUrls.length > 0 && !isLoading && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {selectedCount} of {discoveredUrls.length} pages selected
-                  </span>
+              <div className="space-y-4">
+                {/* Layout Toggle */}
+                <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                  <Label className="text-sm font-medium mb-3 block">Layout Style</Label>
                   <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleAll(true)}
-                      className="h-6 text-xs"
+                    <button
+                      onClick={() => setLayoutMode('radial')}
+                      className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+                        layoutMode === 'radial'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-background hover:bg-secondary/50 text-muted-foreground hover:text-foreground'
+                      }`}
                     >
-                      Select All
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleAll(false)}
-                      className="h-6 text-xs"
+                      <Network className="h-4 w-4" />
+                      <div className="text-left">
+                        <p className="text-sm font-medium">Radial</p>
+                        <p className="text-xs opacity-70">Hub in center</p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => setLayoutMode('hierarchical')}
+                      className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+                        layoutMode === 'hierarchical'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-background hover:bg-secondary/50 text-muted-foreground hover:text-foreground'
+                      }`}
                     >
-                      Deselect All
-                    </Button>
+                      <GitBranch className="h-4 w-4" />
+                      <div className="text-left">
+                        <p className="text-sm font-medium">Site Structure</p>
+                        <p className="text-xs opacity-70">Tree layout</p>
+                      </div>
+                    </button>
                   </div>
                 </div>
-                <ScrollArea className="h-64 rounded-lg border border-border">
-                  <div className="p-2 space-y-1">
-                    {discoveredUrls.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className={`flex items-center gap-3 p-2 rounded transition-colors cursor-pointer hover:bg-secondary/50 ${
-                          item.selected ? "bg-secondary/30" : ""
-                        }`}
-                        onClick={() => toggleUrl(idx)}
+
+                {/* Page Selection */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {selectedCount} of {discoveredUrls.length} pages selected
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleAll(true)}
+                        className="h-6 text-xs"
                       >
-                        <Checkbox
-                          checked={item.selected}
-                          onCheckedChange={() => toggleUrl(idx)}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{item.label}</p>
-                          <p className="text-xs text-muted-foreground truncate">{item.url}</p>
-                        </div>
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      </div>
-                    ))}
+                        Select All
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleAll(false)}
+                        className="h-6 text-xs"
+                      >
+                        Deselect All
+                      </Button>
+                    </div>
                   </div>
-                </ScrollArea>
+                  <ScrollArea className="h-52 rounded-lg border border-border">
+                    <div className="p-2 space-y-1">
+                      {discoveredUrls.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex items-center gap-3 p-2 rounded transition-colors cursor-pointer hover:bg-secondary/50 ${
+                            item.selected ? "bg-secondary/30" : ""
+                          }`}
+                          onClick={() => toggleUrl(idx)}
+                        >
+                          <Checkbox
+                            checked={item.selected}
+                            onCheckedChange={() => toggleUrl(idx)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{item.label}</p>
+                            <p className="text-xs text-muted-foreground truncate">{item.url}</p>
+                          </div>
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
               </div>
             )}
 
