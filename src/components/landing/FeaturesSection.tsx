@@ -87,77 +87,16 @@ function ThemesPreview() {
   );
 }
 
+import sharingPreviewImage from "@/assets/sharing-preview.png";
+
 function SharingPreview() {
   return (
-    <div className="relative h-64 sm:h-80 rounded-xl bg-card border border-border overflow-hidden p-6">
-      <div className="space-y-4">
-        {/* Share link card */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className="bg-muted/50 rounded-lg p-4 border border-border"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Link2 className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">Public Link</p>
-              <p className="text-xs text-muted-foreground truncate">linkscape.app/map/your-universe</p>
-            </div>
-            <div className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium">
-              Copy
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Analytics preview */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-          className="bg-muted/50 rounded-lg p-4 border border-border"
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <BarChart3 className="h-5 w-5 text-accent" />
-            <p className="text-sm font-medium text-foreground">Views this week</p>
-          </div>
-          <div className="flex items-end gap-1 h-12">
-            {[40, 65, 45, 80, 55, 90, 70].map((height, i) => (
-              <motion.div
-                key={i}
-                initial={{ height: 0 }}
-                whileInView={{ height: `${height}%` }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.4 + i * 0.05 }}
-                className="flex-1 bg-accent/60 rounded-t"
-              />
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Export options */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
-          className="flex gap-2"
-        >
-          <div className="flex-1 px-3 py-2 rounded-lg bg-muted/50 border border-border text-center text-xs font-medium text-foreground">
-            PNG
-          </div>
-          <div className="flex-1 px-3 py-2 rounded-lg bg-muted/50 border border-border text-center text-xs font-medium text-foreground">
-            PDF
-          </div>
-          <div className="flex-1 px-3 py-2 rounded-lg bg-muted/50 border border-border text-center text-xs font-medium text-foreground">
-            Embed
-          </div>
-        </motion.div>
-      </div>
+    <div className="relative h-64 sm:h-80 rounded-xl bg-card border border-border overflow-hidden">
+      <img 
+        src={sharingPreviewImage} 
+        alt="Dashboard showing My Maps with map thumbnails, statistics, and management options"
+        className="w-full h-full object-cover object-center"
+      />
     </div>
   );
 }
