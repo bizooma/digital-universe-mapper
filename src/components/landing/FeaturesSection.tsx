@@ -73,39 +73,16 @@ function EditorPreview() {
   );
 }
 
-function ThemesPreview() {
-  const themes = [
-    { name: "Ocean", colors: ["bg-blue-500", "bg-cyan-400", "bg-teal-500"] },
-    { name: "Sunset", colors: ["bg-orange-500", "bg-rose-400", "bg-pink-500"] },
-    { name: "Forest", colors: ["bg-emerald-500", "bg-green-400", "bg-lime-500"] },
-    { name: "Purple", colors: ["bg-violet-500", "bg-purple-400", "bg-indigo-500"] },
-  ];
+import themesPreviewImage from "@/assets/themes-preview.png";
 
+function ThemesPreview() {
   return (
-    <div className="relative h-64 sm:h-80 rounded-xl bg-card border border-border overflow-hidden p-6">
-      <div className="grid grid-cols-2 gap-4 h-full">
-        {themes.map((theme, i) => (
-          <motion.div
-            key={theme.name}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 + i * 0.1 }}
-            className={`rounded-lg bg-muted/50 border border-border p-3 hover:border-primary/50 transition-colors cursor-pointer ${i === 0 ? 'ring-2 ring-primary' : ''}`}
-          >
-            <div className="flex gap-1.5 mb-2">
-              {theme.colors.map((color, j) => (
-                <div key={j} className={`w-4 h-4 rounded-full ${color}`} />
-              ))}
-            </div>
-            <p className="text-xs font-medium text-foreground">{theme.name}</p>
-            <div className="mt-2 space-y-1.5">
-              <div className={`h-1.5 rounded-full ${theme.colors[0]} w-3/4`} />
-              <div className={`h-1.5 rounded-full ${theme.colors[1]} w-1/2`} />
-            </div>
-          </motion.div>
-        ))}
-      </div>
+    <div className="relative h-64 sm:h-80 rounded-xl bg-card border border-border overflow-hidden">
+      <img 
+        src={themesPreviewImage} 
+        alt="Map Settings dialog showing brand color options, node styles, and connection styles"
+        className="w-full h-full object-cover object-center"
+      />
     </div>
   );
 }
