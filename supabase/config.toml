@@ -15,5 +15,8 @@ verify_jwt = false
 [functions.send-password-reset]
 verify_jwt = false
 
-[functions.track-view]
+[functions.admin-list-users]
+verify_jwt = false
+
+[functions.admin-manage-user]
 verify_jwt = false

@@ -22,6 +22,24 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+// Check if user has admin role
+async function checkAdminRole(supabaseClient: ReturnType<typeof createClient>, userId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabaseClient.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin"
+    });
+    if (error) {
+      logStep("Admin role check error", { error: error.message });
+      return false;
+    }
+    return data === true;
+  } catch (err) {
+    logStep("Admin role check exception", { error: String(err) });
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -51,6 +69,21 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Check if user is admin - admins get proplus automatically
+    const isAdmin = await checkAdminRole(supabaseClient, user.id);
+    if (isAdmin) {
+      logStep("User is admin, granting proplus access");
+      return new Response(JSON.stringify({
+        subscribed: true,
+        plan: "proplus",
+        subscription_end: null,
+        is_admin: true,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
@@ -59,7 +92,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         subscribed: false, 
         plan: "free",
-        subscription_end: null 
+        subscription_end: null,
+        is_admin: false,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -80,7 +114,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         subscribed: false, 
         plan: "free",
-        subscription_end: null 
+        subscription_end: null,
+        is_admin: false,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -128,6 +163,7 @@ serve(async (req) => {
       plan,
       subscription_end: subscriptionEnd,
       product_id: productId,
+      is_admin: false,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
