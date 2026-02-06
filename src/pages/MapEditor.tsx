@@ -49,6 +49,7 @@ import {
   ImagePlus,
   FileSpreadsheet,
   Globe,
+  Code,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes, type NodeCategory, type LinkNodeData } from "@/components/editor/LinkNode";
@@ -125,6 +126,7 @@ function MapEditorInner() {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(!isNewMap);
@@ -903,7 +905,7 @@ function MapEditorInner() {
                   className="flex-1"
                   onClick={() => {
                     window.open(
-                      `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out my digital presence map "${mapName}" on LinkScape!`)}`,
+                      `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out my digital presence map "${mapName}" on Mapprr!`)}`,
                       "_blank"
                     );
                   }}
@@ -922,6 +924,78 @@ function MapEditorInner() {
                 >
                   Share on LinkedIn
                 </Button>
+              </div>
+
+              {/* Embed Code Section - Pro Plus/Team Only */}
+              <div className="border-t border-border pt-4 mt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Code className="h-4 w-4 text-primary" />
+                  <Label className="text-sm font-medium">Embed on your website</Label>
+                  {!isProPlus && (
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                      Pro Plus
+                    </span>
+                  )}
+                </div>
+                
+                {isProPlus ? (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Copy this code to embed your map on any website.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        readOnly
+                        value={`<iframe src="${window.location.origin}/embed/${mapId}" width="100%" height="500" frameborder="0" style="border-radius: 8px;"></iframe>`}
+                        className="flex-1 text-xs font-mono"
+                      />
+                      <Button 
+                        size="icon" 
+                        variant="outline"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(
+                              `<iframe src="${window.location.origin}/embed/${mapId}" width="100%" height="500" frameborder="0" style="border-radius: 8px;"></iframe>`
+                            );
+                            setEmbedCopied(true);
+                            toast.success("Embed code copied!");
+                            setTimeout(() => setEmbedCopied(false), 2000);
+                          } catch {
+                            toast.error("Failed to copy embed code");
+                          }
+                        }}
+                      >
+                        {embedCopied ? (
+                          <Check className="h-4 w-4 text-primary" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Customize with URL params: <code className="bg-secondary px-1 rounded">?controls=false</code> <code className="bg-secondary px-1 rounded">?background=false</code>
+                    </p>
+                  </>
+                ) : (
+                  <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Embed your map on your website with a simple iframe code.
+                    </p>
+                    <Button
+                      variant="hero"
+                      size="sm"
+                      onClick={() => {
+                        setShowShareDialog(false);
+                        setUpgradeLimitType("feature");
+                        setUpgradeFeatureName("Embed Maps");
+                        setShowUpgradeDialog(true);
+                      }}
+                    >
+                      <Crown className="h-4 w-4 mr-1" />
+                      Upgrade to Pro Plus
+                    </Button>
+                  </div>
+                )}
               </div>
             </>
           )}
