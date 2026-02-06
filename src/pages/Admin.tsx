@@ -7,7 +7,8 @@ import {
   Crown, 
   ArrowLeft,
   RefreshCw,
-  Loader2
+  Loader2,
+  MessageSquare
 } from "lucide-react";
 import mapprLogo from "@/assets/mapprr-logo.png";
 import { Button } from "@/components/ui/button";
@@ -16,8 +17,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { UserTable, type AdminUser } from "@/components/admin/UserTable";
+import { TicketTable, type SupportTicket } from "@/components/admin/TicketTable";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Admin() {
   usePageMeta({
@@ -28,7 +31,9 @@ export default function Admin() {
   const { user } = useAuth();
   const { isAdmin, loading: subLoading } = useSubscription();
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ticketsLoading, setTicketsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchUsers = async (showRefreshToast = false) => {
@@ -51,9 +56,27 @@ export default function Admin() {
     }
   };
 
+  const fetchTickets = async () => {
+    try {
+      setTicketsLoading(true);
+      const { data, error } = await supabase.functions.invoke("admin-list-tickets");
+      
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      
+      setTickets(data.tickets || []);
+    } catch (err) {
+      console.error("Error fetching tickets:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to load tickets");
+    } finally {
+      setTicketsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isAdmin) {
       fetchUsers();
+      fetchTickets();
     }
   }, [isAdmin]);
 
@@ -78,6 +101,7 @@ export default function Admin() {
   const proUsers = users.filter(u => u.plan === "pro").length;
   const proPlusUsers = users.filter(u => u.plan === "proplus").length;
   const teamUsers = users.filter(u => u.plan === "team").length;
+  const openTickets = tickets.filter(t => t.status === "open").length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -203,22 +227,60 @@ export default function Admin() {
             </Card>
           </div>
 
-          {/* User Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                All Users
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <UserTable 
-                users={users} 
-                onRefresh={() => fetchUsers()} 
-                loading={loading} 
-              />
-            </CardContent>
-          </Card>
+          {/* Tabs for Users and Support Tickets */}
+          <Tabs defaultValue="users" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="users" className="gap-2">
+                <Users className="h-4 w-4" />
+                Users
+              </TabsTrigger>
+              <TabsTrigger value="tickets" className="gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Support Tickets
+                {openTickets > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-primary text-primary-foreground">
+                    {openTickets}
+                  </span>
+                )}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="users">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    All Users
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UserTable 
+                    users={users} 
+                    onRefresh={() => fetchUsers()} 
+                    loading={loading} 
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="tickets">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Support Tickets
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TicketTable 
+                    tickets={tickets} 
+                    onRefresh={() => fetchTickets()} 
+                    loading={ticketsLoading} 
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </main>
     </div>

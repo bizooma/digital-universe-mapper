@@ -21,7 +21,8 @@ import {
   X,
   BarChart3,
   Sparkles,
-  Shield
+  Shield,
+  HelpCircle
 } from "lucide-react";
 import mapprLogo from "@/assets/mapprr-logo.png";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +58,7 @@ import {
 import type { Node, Edge } from "@xyflow/react";
 import type { MapTemplate } from "@/data/mapTemplates";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SupportDialog } from "@/components/support/SupportDialog";
 
 interface UserMap {
   id: string;
@@ -439,6 +441,14 @@ export default function Dashboard() {
                 Admin
               </Link>
             )}
+            <SupportDialog
+              trigger={
+                <button className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors w-full">
+                  <HelpCircle className="h-4 w-4" />
+                  Help & Support
+                </button>
+              }
+            />
           </div>
 
           {/* Upgrade Card - only show for free tier */}
