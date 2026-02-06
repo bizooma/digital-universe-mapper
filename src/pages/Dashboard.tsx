@@ -487,30 +487,34 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" className="flex-1" asChild>
+            <Button variant="ghost" size="sm" className="flex-1 flex-col h-auto py-2 gap-1" asChild>
               <Link to="/settings">
                 <Settings className="h-4 w-4" />
+                <span className="text-[10px]">Settings</span>
               </Link>
             </Button>
             {isPro ? (
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="flex-1"
+                className="flex-1 flex-col h-auto py-2 gap-1"
                 onClick={handleManageSubscription}
                 disabled={portalLoading}
               >
                 <CreditCard className="h-4 w-4" />
+                <span className="text-[10px]">Billing</span>
               </Button>
             ) : (
-              <Button variant="ghost" size="sm" className="flex-1" asChild>
+              <Button variant="ghost" size="sm" className="flex-1 flex-col h-auto py-2 gap-1" asChild>
                 <Link to="/pricing">
                   <Crown className="h-4 w-4" />
+                  <span className="text-[10px]">Upgrade</span>
                 </Link>
               </Button>
             )}
-            <Button variant="ghost" size="sm" className="flex-1" onClick={handleSignOut}>
+            <Button variant="ghost" size="sm" className="flex-1 flex-col h-auto py-2 gap-1" onClick={handleSignOut}>
               <LogOut className="h-4 w-4" />
+              <span className="text-[10px]">Sign Out</span>
             </Button>
           </div>
         </div>
