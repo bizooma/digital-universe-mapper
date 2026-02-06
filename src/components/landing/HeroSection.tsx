@@ -93,7 +93,7 @@ export function HeroSection() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 backdrop-blur-sm border border-orange-400/30 mb-8 animate-pulse-slow"
           >
             <Sparkles className="h-4 w-4 text-orange-300" />
-            <span className="text-sm font-medium text-orange-200">Now in public beta</span>
+            <span className="text-sm font-medium text-orange-200">Now in Soft Launch</span>
           </motion.div>
 
           {/* Headline */}
