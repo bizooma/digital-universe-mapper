@@ -58,13 +58,18 @@ import editorPreviewImage from "@/assets/editor-preview.png";
 // Visual mockup components for each feature
 function EditorPreview() {
   return (
-    <div className="relative h-64 sm:h-80 rounded-xl bg-card border border-border overflow-hidden">
+    <a 
+      href="https://mapprr.com/view/02c6f01e-db35-4bb7-b7d0-874047ab46d1"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block relative h-64 sm:h-80 rounded-xl bg-card border border-border overflow-hidden hover:border-primary/50 transition-colors cursor-pointer group"
+    >
       <img 
         src={editorPreviewImage} 
         alt="Digital presence map showing connected platforms like LinkedIn, YouTube, Facebook, Instagram, and websites"
-        className="w-full h-full object-cover object-center"
+        className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-300"
       />
-    </div>
+    </a>
   );
 }
 
