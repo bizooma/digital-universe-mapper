@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Loader2, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, MessageSquare, Image } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -31,6 +31,7 @@ export interface SupportTicket {
   description: string;
   status: "open" | "in_progress" | "resolved";
   admin_notes: string | null;
+  screenshot_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -206,6 +207,27 @@ export function TicketTable({ tickets, loading, onRefresh }: TicketTableProps) {
                         {ticket.description}
                       </p>
                     </div>
+
+                    {ticket.screenshot_url && (
+                      <div>
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <Image className="h-4 w-4" />
+                          Screenshot
+                        </h4>
+                        <a
+                          href={ticket.screenshot_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block"
+                        >
+                          <img
+                            src={ticket.screenshot_url}
+                            alt="Ticket screenshot"
+                            className="max-h-48 rounded-md border hover:opacity-80 transition-opacity"
+                          />
+                        </a>
+                      </div>
+                    )}
 
                     <div>
                       <div className="flex items-center justify-between mb-2">

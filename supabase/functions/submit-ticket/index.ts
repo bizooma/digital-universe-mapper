@@ -11,6 +11,7 @@ const corsHeaders = {
 interface TicketRequest {
   subject: string;
   description: string;
+  screenshotUrl?: string | null;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -44,7 +45,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { subject, description }: TicketRequest = await req.json();
+    const { subject, description, screenshotUrl }: TicketRequest = await req.json();
 
     // Validate input
     if (!subject?.trim() || !description?.trim()) {
@@ -76,6 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
         user_email: user.email,
         subject: subject.trim(),
         description: description.trim(),
+        screenshot_url: screenshotUrl || null,
       })
       .select()
       .single();
@@ -109,6 +111,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p><strong>Subject:</strong> ${subject.trim()}</p>
             <h3>Issue Description:</h3>
             <p>${description.trim().replace(/\n/g, "<br />")}</p>
+            ${screenshotUrl ? `<p><strong>Screenshot:</strong> <a href="${screenshotUrl}">View Screenshot</a></p>` : ""}
             <hr />
             <p><a href="https://digital-universe-mapper.lovable.app/admin">View in Admin Dashboard</a></p>
           `,

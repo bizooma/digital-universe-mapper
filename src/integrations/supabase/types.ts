@@ -154,6 +154,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          screenshot_url: string | null
           status: Database["public"]["Enums"]["ticket_status"]
           subject: string
           updated_at: string
@@ -165,6 +166,7 @@ export type Database = {
           created_at?: string
           description: string
           id?: string
+          screenshot_url?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           subject: string
           updated_at?: string
@@ -176,6 +178,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          screenshot_url?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           subject?: string
           updated_at?: string
