@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
@@ -53,8 +54,16 @@ export function ContactSection() {
     setIsSubmitting(true);
 
     try {
-      // Simulate form submission - in production, this would send to an edge function
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const { data, error } = await supabase.functions.invoke("submit-contact", {
+        body: {
+          name: result.data.name,
+          email: result.data.email,
+          message: result.data.message,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       
       setIsSubmitted(true);
       toast.success("Message sent successfully!", {
@@ -66,7 +75,8 @@ export function ContactSection() {
         setFormData({ name: "", email: "", message: "" });
         setIsSubmitted(false);
       }, 3000);
-    } catch {
+    } catch (err) {
+      console.error("Contact form error:", err);
       toast.error("Failed to send message. Please try again.");
     } finally {
       setIsSubmitting(false);
