@@ -53,53 +53,17 @@ const mainFeatures = [
   },
 ];
 
+import editorPreviewImage from "@/assets/editor-preview.png";
+
 // Visual mockup components for each feature
 function EditorPreview() {
-  const nodes = [
-    { label: "mysite.com", icon: Globe, x: 50, y: 35, color: "bg-primary" },
-    { label: "@social", icon: Instagram, x: 20, y: 20, color: "bg-accent" },
-    { label: "@twitter", icon: Twitter, x: 80, y: 20, color: "bg-accent" },
-    { label: "YouTube", icon: Youtube, x: 25, y: 65, color: "bg-emerald-500" },
-    { label: "Newsletter", icon: Mail, x: 75, y: 65, color: "bg-rose-500" },
-  ];
-
   return (
-    <div className="relative h-64 sm:h-80 rounded-xl bg-card border border-border overflow-hidden canvas-dots">
-      {/* Connection lines */}
-      <svg className="absolute inset-0 w-full h-full">
-        <line x1="50%" y1="35%" x2="20%" y2="20%" stroke="hsl(var(--primary))" strokeWidth="2" opacity="0.4" />
-        <line x1="50%" y1="35%" x2="80%" y2="20%" stroke="hsl(var(--primary))" strokeWidth="2" opacity="0.4" />
-        <line x1="50%" y1="35%" x2="25%" y2="65%" stroke="hsl(var(--primary))" strokeWidth="2" opacity="0.4" />
-        <line x1="50%" y1="35%" x2="75%" y2="65%" stroke="hsl(var(--primary))" strokeWidth="2" opacity="0.4" />
-      </svg>
-      
-      {/* Nodes */}
-      {nodes.map((node, i) => (
-        <motion.div
-          key={node.label}
-          initial={{ opacity: 0, scale: 0 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 + i * 0.1 }}
-          className="absolute transform -translate-x-1/2 -translate-y-1/2"
-          style={{ left: `${node.x}%`, top: `${node.y}%` }}
-        >
-          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${node.color} text-white text-xs font-medium shadow-lg`}>
-            <node.icon className="h-3.5 w-3.5" />
-            {node.label}
-          </div>
-        </motion.div>
-      ))}
-
-      {/* Cursor animation */}
-      <motion.div
-        className="absolute w-4 h-4"
-        initial={{ left: "30%", top: "50%" }}
-        animate={{ left: ["30%", "60%", "45%", "30%"], top: ["50%", "40%", "55%", "50%"] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <MousePointer className="h-4 w-4 text-foreground drop-shadow-md" />
-      </motion.div>
+    <div className="relative h-64 sm:h-80 rounded-xl bg-card border border-border overflow-hidden">
+      <img 
+        src={editorPreviewImage} 
+        alt="Digital presence map showing connected platforms like LinkedIn, YouTube, Facebook, Instagram, and websites"
+        className="w-full h-full object-cover object-center"
+      />
     </div>
   );
 }
