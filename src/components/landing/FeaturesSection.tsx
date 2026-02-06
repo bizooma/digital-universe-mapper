@@ -17,11 +17,11 @@ import {
 const mainFeatures = [
   {
     badge: "Visual Editor",
-    title: "Drag, drop, and connect your entire digital world",
+    title: "Map and connect your entire digital world",
     description:
       "Our intuitive canvas lets you visually map every platform, website, and link in your ecosystem. See the big picture of how your audience flows between channels.",
     highlights: [
-      "Intuitive drag & drop interface",
+      "Simple, intuitive interface",
       "Smart connection lines that auto-route",
       "Zoom, pan, and organize freely",
     ],
