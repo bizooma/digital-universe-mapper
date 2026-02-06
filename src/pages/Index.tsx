@@ -7,6 +7,7 @@ import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { AgenciesSection } from "@/components/landing/AgenciesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { CTASection } from "@/components/landing/CTASection";
+import { ContactSection } from "@/components/landing/ContactSection";
 import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuth } from "@/hooks/useAuth";
@@ -42,6 +43,9 @@ const Index = () => {
         <AgenciesSection />
         <PricingSection />
         <CTASection />
+        
+        {/* Contact Section */}
+        <ContactSection />
         
         {/* Google Map Section */}
         <section className="w-full">
