@@ -679,25 +679,86 @@ function MapEditorInner() {
     return { dataUrl, imageWidth, imageHeight };
   };
 
-  const handleExportPNG = async () => {
-    if (isFreeTier) {
-      setShowExportDialog(true);
-      return;
-    }
+  // Add watermark to image for free tier users
+  const addWatermark = async (dataUrl: string, imageWidth: number, imageHeight: number): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = imageWidth;
+        canvas.height = imageHeight;
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          resolve(dataUrl);
+          return;
+        }
 
+        // Draw the original image
+        ctx.drawImage(img, 0, 0, imageWidth, imageHeight);
+
+        // Calculate watermark size based on image dimensions
+        const fontSize = Math.max(16, Math.min(imageWidth, imageHeight) * 0.04);
+        const padding = fontSize * 0.8;
+
+        // Set up watermark style
+        ctx.font = `600 ${fontSize}px Inter, system-ui, sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+
+        const text = 'Made with Mapprr.com';
+        const textMetrics = ctx.measureText(text);
+        const textWidth = textMetrics.width;
+        const textHeight = fontSize;
+
+        // Position in bottom-right corner
+        const x = imageWidth - padding;
+        const y = imageHeight - padding;
+
+        // Draw semi-transparent background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        const bgPadding = fontSize * 0.3;
+        ctx.beginPath();
+        ctx.roundRect(
+          x - textWidth - bgPadding,
+          y - textHeight - bgPadding,
+          textWidth + bgPadding * 2,
+          textHeight + bgPadding * 2,
+          fontSize * 0.2
+        );
+        ctx.fill();
+
+        // Draw text
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(text, x, y);
+
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.src = dataUrl;
+    });
+  };
+
+  const handleExportPNG = async () => {
     setIsExporting(true);
     
     try {
-      const { dataUrl } = await generateImageData();
+      const { dataUrl, imageWidth, imageHeight } = await generateImageData();
+
+      // Add watermark for free tier users
+      const finalDataUrl = isFreeTier 
+        ? await addWatermark(dataUrl, imageWidth, imageHeight) 
+        : dataUrl;
 
       // Create download link
       const link = document.createElement('a');
       link.download = `${mapName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.png`;
-      link.href = dataUrl;
+      link.href = finalDataUrl;
       link.click();
 
       toast.success("Map exported successfully!", {
-        description: `"${mapName}" has been downloaded as PNG.`,
+        description: isFreeTier 
+          ? `"${mapName}" has been downloaded with Mapprr watermark.`
+          : `"${mapName}" has been downloaded as PNG.`,
       });
     } catch (error) {
       console.error("Export error:", error);
@@ -879,28 +940,31 @@ function MapEditorInner() {
         </DialogContent>
       </Dialog>
 
-      {/* Export Upgrade Dialog */}
+      {/* Export Upgrade Dialog - for PDF export */}
       <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Crown className="h-5 w-5 text-primary" />
-              Upgrade to Export
+              Upgrade for PDF Export
             </DialogTitle>
             <DialogDescription>
-              Export features are available on Pro and Team plans.
+              PDF export and watermark-free exports are available on Pro plans.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-secondary/50 border border-border">
               <h4 className="font-medium text-foreground mb-2">Pro includes:</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• PNG export (high resolution)</li>
                 <li>• PDF export</li>
-                <li>• No watermark</li>
+                <li>• No watermark on exports</li>
                 <li>• Unlimited maps & nodes</li>
+                <li>• Custom branding</li>
               </ul>
             </div>
+            <p className="text-sm text-muted-foreground">
+              <span className="text-foreground font-medium">Tip:</span> You can export PNG for free – it will include a small Mapprr watermark.
+            </p>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setShowExportDialog(false)} className="flex-1">
                 Maybe Later
