@@ -1161,6 +1161,8 @@ function MapEditorInner() {
           onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
           fitView
+          minZoom={0.1}
+          maxZoom={2}
           className="bg-background"
           defaultEdgeOptions={{
             style: { strokeWidth: 2, stroke: mapSettings.primaryColor },
