@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      lifetime_purchases: {
+        Row: {
+          id: string
+          plan: string
+          purchased_at: string | null
+          stripe_payment_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          plan?: string
+          purchased_at?: string | null
+          stripe_payment_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          plan?: string
+          purchased_at?: string | null
+          stripe_payment_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       map_views: {
         Row: {
           country: string | null
