@@ -401,7 +401,7 @@ export function TemplateSelector({ open, onOpenChange, onSelect }: TemplateSelec
   if (showUrlCrawler) {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-xl w-[calc(100%-2rem)]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Globe className="h-5 w-5 text-primary" />
@@ -453,33 +453,33 @@ export function TemplateSelector({ open, onOpenChange, onSelect }: TemplateSelec
             {discoveredUrls.length > 0 && !isLoading && (
               <div className="space-y-4">
                 {/* Layout Toggle */}
-                <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                <div className="rounded-lg bg-secondary/50 border border-border p-3">
                   <Label className="text-sm font-medium mb-3 block">Layout Style</Label>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setLayoutMode('radial')}
-                      className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
                         layoutMode === 'radial'
                           ? 'border-primary bg-primary/10 text-primary'
                           : 'border-border bg-background hover:bg-secondary/50 text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      <Network className="h-4 w-4" />
-                      <div className="text-left">
+                      <Network className="h-4 w-4 flex-shrink-0" />
+                      <div className="text-left min-w-0">
                         <p className="text-sm font-medium">Radial</p>
                         <p className="text-xs opacity-70">Hub in center</p>
                       </div>
                     </button>
                     <button
                       onClick={() => setLayoutMode('hierarchical')}
-                      className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
                         layoutMode === 'hierarchical'
                           ? 'border-primary bg-primary/10 text-primary'
                           : 'border-border bg-background hover:bg-secondary/50 text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      <GitBranch className="h-4 w-4" />
-                      <div className="text-left">
+                      <GitBranch className="h-4 w-4 flex-shrink-0" />
+                      <div className="text-left min-w-0">
                         <p className="text-sm font-medium">Site Structure</p>
                         <p className="text-xs opacity-70">Tree layout</p>
                       </div>
