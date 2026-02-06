@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, Mail, Lock, Eye, EyeOff, ArrowRight, User } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, User } from "lucide-react";
+import mapprLogo from "@/assets/mapprr-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,14 +98,8 @@ export default function Signup() {
           className="w-full max-w-md"
         >
           {/* Logo */}
-          <Link to="/" className="inline-flex items-center gap-2 mb-8 group">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-primary rounded-lg blur-md opacity-50" />
-              <div className="relative bg-gradient-primary p-2 rounded-lg">
-                <Zap className="h-5 w-5 text-primary-foreground" />
-              </div>
-            </div>
-            <span className="text-xl font-bold text-foreground">LinkScape</span>
+          <Link to="/" className="inline-block mb-8">
+            <img src={mapprLogo} alt="Mapprr" className="h-10 w-auto" />
           </Link>
 
           <h1 className="text-2xl font-bold text-foreground mb-2">
