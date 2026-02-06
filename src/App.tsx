@@ -15,6 +15,7 @@ import SharedMaps from "./pages/SharedMaps";
 import MapEditor from "./pages/MapEditor";
 import PublicMapView from "./pages/PublicMapView";
 import EmbedMapView from "./pages/EmbedMapView";
+import AcceptInvite from "./pages/AcceptInvite";
 import Analytics from "./pages/Analytics";
 import Pricing from "./pages/Pricing";
 import Settings from "./pages/Settings";
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/editor/:id" element={<ProtectedRoute><MapEditor /></ProtectedRoute>} />
             <Route path="/view/:id" element={<PublicMapView />} />
             <Route path="/embed/:id" element={<EmbedMapView />} />
+            <Route path="/accept-invite" element={<AcceptInvite />} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
