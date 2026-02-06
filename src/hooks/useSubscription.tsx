@@ -11,6 +11,7 @@ interface SubscriptionState {
   loading: boolean;
   error: string | null;
   isAdmin: boolean;
+  isLifetime: boolean;
 }
 
 // Plan limits
@@ -54,6 +55,7 @@ export function useSubscription() {
     loading: true,
     error: null,
     isAdmin: false,
+    isLifetime: false,
   });
 
   const checkSubscription = useCallback(async () => {
@@ -65,6 +67,7 @@ export function useSubscription() {
         loading: false,
         error: null,
         isAdmin: false,
+        isLifetime: false,
       });
       return;
     }
@@ -83,6 +86,7 @@ export function useSubscription() {
         loading: false,
         error: null,
         isAdmin: data.is_admin || false,
+        isLifetime: data.is_lifetime || false,
       });
     } catch (err) {
       console.error("Error checking subscription:", err);
@@ -144,6 +148,7 @@ export function useSubscription() {
     isTeam: state.plan === "team",
     isFreeTier: state.plan === "free",
     isAdmin: state.isAdmin,
+    isLifetime: state.isLifetime,
     limits,
     canCreateMap: (currentMapCount: number) => currentMapCount < limits.maxMaps,
     canAddNode: (currentNodeCount: number) => currentNodeCount < limits.maxNodesPerMap,
