@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { toast } from "sonner";
+import { lovable } from "@/integrations/lovable/index";
 
 export default function Login() {
   useCanonicalUrl();
@@ -20,8 +21,20 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    const { error } = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (error) {
+      toast.error(error.message);
+      setIsGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +84,8 @@ export default function Login() {
             variant="outline"
             className="w-full mb-6 h-12"
             type="button"
+            onClick={handleGoogleSignIn}
+            disabled={isGoogleLoading}
           >
             <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
               <path
@@ -90,7 +105,7 @@ export default function Login() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continue with Google
+            {isGoogleLoading ? "Connecting..." : "Continue with Google"}
           </Button>
 
           <div className="relative mb-6">
