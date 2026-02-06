@@ -57,6 +57,7 @@ import { EditNodePanel } from "@/components/editor/EditNodePanel";
 import { LogoUpload } from "@/components/editor/LogoUpload";
 import { CSVImportDialog } from "@/components/editor/CSVImportDialog";
 import { URLCrawlerDialog } from "@/components/editor/URLCrawlerDialog";
+import { LayoutSwitcher } from "@/components/editor/LayoutSwitcher";
 import { MapSettingsDialog, type MapSettings, DEFAULT_SETTINGS } from "@/components/editor/MapSettingsDialog";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { UpgradeLimitDialog } from "@/components/dashboard/UpgradeLimitDialog";
@@ -1274,9 +1275,15 @@ function MapEditorInner() {
                   <LayoutGrid className="h-4 w-4" />
                 )}
               </Button>
-              <Button variant="ghost" size="icon" title="Auto Layout">
-                <Maximize2 className="h-4 w-4" />
-              </Button>
+              <LayoutSwitcher
+                nodes={nodes}
+                edges={edges}
+                onLayoutChange={(newNodes, newEdges) => {
+                  setNodes(newNodes);
+                  setEdges(newEdges);
+                  toast.success("Layout applied");
+                }}
+              />
               <div className="h-px bg-border" />
               <LogoUpload
                 mapId={mapId}
