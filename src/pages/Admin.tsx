@@ -8,7 +8,8 @@ import {
   ArrowLeft,
   RefreshCw,
   Loader2,
-  MessageSquare
+  MessageSquare,
+  UserPlus
 } from "lucide-react";
 import mapprLogo from "@/assets/mapprr-logo.png";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { UserTable, type AdminUser } from "@/components/admin/UserTable";
 import { TicketTable, type SupportTicket } from "@/components/admin/TicketTable";
+import { TeamManagement } from "@/components/admin/TeamManagement";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -227,7 +229,7 @@ export default function Admin() {
             </Card>
           </div>
 
-          {/* Tabs for Users and Support Tickets */}
+          {/* Tabs for Users, Support Tickets, and Team */}
           <Tabs defaultValue="users" className="w-full">
             <TabsList className="mb-4">
               <TabsTrigger value="users" className="gap-2">
@@ -242,6 +244,10 @@ export default function Admin() {
                     {openTickets}
                   </span>
                 )}
+              </TabsTrigger>
+              <TabsTrigger value="team" className="gap-2">
+                <UserPlus className="h-4 w-4" />
+                Team
               </TabsTrigger>
             </TabsList>
 
@@ -279,6 +285,10 @@ export default function Admin() {
                   />
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="team">
+              <TeamManagement />
             </TabsContent>
           </Tabs>
         </motion.div>
