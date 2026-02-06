@@ -69,13 +69,13 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if user is admin - admins get proplus automatically
+    // Check if user is admin - admins get team tier automatically
     const isAdmin = await checkAdminRole(supabaseClient, user.id);
     if (isAdmin) {
-      logStep("User is admin, granting proplus access");
+      logStep("User is admin, granting team access");
       return new Response(JSON.stringify({
         subscribed: true,
-        plan: "proplus",
+        plan: "team",
         subscription_end: null,
         is_admin: true,
       }), {
