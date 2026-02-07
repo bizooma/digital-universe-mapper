@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/landing/HeroSection";
@@ -10,29 +8,13 @@ import { CTASection } from "@/components/landing/CTASection";
 import { ContactSection } from "@/components/landing/ContactSection";
 import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
 import { usePageMeta } from "@/hooks/usePageMeta";
-import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
   useCanonicalUrl();
   usePageMeta({
     title: "Mapprr - Create Beautiful Visual Site Maps",
     description: "Mapprr helps you create stunning visual site maps for your website. Organize, plan, and share your site structure with ease."
   });
-
-  // Redirect authenticated users to dashboard (handles OAuth callback)
-  useEffect(() => {
-    if (!loading && user) {
-      navigate("/dashboard", { replace: true });
-    }
-  }, [user, loading, navigate]);
-
-  // Show nothing while checking auth (prevents flash of landing page)
-  if (loading) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-background">
