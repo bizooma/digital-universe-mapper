@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import mapprLogo from "@/assets/mapprr-logo.png";
 
 const navLinks = [
@@ -13,6 +14,7 @@ const navLinks = [
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
   const isAuthPage = location.pathname === "/login" || location.pathname === "/signup";
 
   return (
@@ -46,12 +48,20 @@ export function Navbar() {
             <div className="hidden md:flex items-center gap-3">
               {!isAuthPage && (
                 <>
-                  <Button variant="ghost" asChild>
-                    <Link to="/login">Log in</Link>
-                  </Button>
-                  <Button variant="hero" asChild>
-                    <Link to="/signup">Sign Up Now</Link>
-                  </Button>
+                  {user ? (
+                    <Button variant="hero" asChild>
+                      <Link to="/dashboard">Go to Dashboard</Link>
+                    </Button>
+                  ) : (
+                    <>
+                      <Button variant="ghost" asChild>
+                        <Link to="/login">Log in</Link>
+                      </Button>
+                      <Button variant="hero" asChild>
+                        <Link to="/signup">Sign Up Now</Link>
+                      </Button>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -88,12 +98,20 @@ export function Navbar() {
                 </Link>
               ))}
               <div className="pt-4 space-y-2 border-t border-border/50">
-                <Button variant="outline" className="w-full" asChild>
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Log in</Link>
-                </Button>
-                <Button variant="hero" className="w-full" asChild>
-                  <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>Sign Up Now</Link>
-                </Button>
+                {user ? (
+                  <Button variant="hero" className="w-full" asChild>
+                    <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>Go to Dashboard</Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Log in</Link>
+                    </Button>
+                    <Button variant="hero" className="w-full" asChild>
+                      <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>Sign Up Now</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
