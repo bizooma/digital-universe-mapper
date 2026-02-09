@@ -21,10 +21,20 @@ interface DiscoveredURL {
   selected: boolean;
 }
 
+interface ImportedNode {
+  label: string;
+  url: string;
+  category: NodeCategory;
+  platform: string;
+  notes: string;
+  parentUrl?: string; // For hierarchy: which URL is the parent
+  isIntermediate?: boolean; // Auto-created directory node
+}
+
 interface URLCrawlerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onImport: (urls: { label: string; url: string; category: NodeCategory; platform: string; notes: string }[]) => void;
+  onImport: (urls: ImportedNode[]) => void;
 }
 
 // Generate label from URL path
@@ -115,13 +125,77 @@ export function URLCrawlerDialog({ open, onOpenChange, onImport }: URLCrawlerDia
       return;
     }
 
-    const nodes = selected.map(u => ({
-      label: u.label,
-      url: u.url,
-      category: "website" as NodeCategory,
-      platform: "website",
-      notes: "",
-    }));
+    // Build hierarchy from URL paths
+    const urlSet = new Set(selected.map(u => u.url));
+    const nodes: ImportedNode[] = [];
+    const addedPaths = new Set<string>();
+
+    // Sort by path depth (shorter first)
+    const sorted = [...selected].sort((a, b) => {
+      try {
+        const aSegs = new URL(a.url).pathname.split("/").filter(Boolean).length;
+        const bSegs = new URL(b.url).pathname.split("/").filter(Boolean).length;
+        return aSegs - bSegs;
+      } catch { return 0; }
+    });
+
+    for (const u of sorted) {
+      try {
+        const parsed = new URL(u.url);
+        const segments = parsed.pathname.split("/").filter(Boolean);
+
+        // Create intermediate directory nodes if missing
+        for (let i = 1; i < segments.length; i++) {
+          const intermediatePath = segments.slice(0, i).join("/");
+          const intermediateUrl = `${parsed.origin}/${intermediatePath}`;
+          if (!urlSet.has(intermediateUrl) && !addedPaths.has(intermediatePath)) {
+            const parentPath = i === 1 ? null : segments.slice(0, i - 1).join("/");
+            const parentUrl = parentPath ? `${parsed.origin}/${parentPath}` : undefined;
+            nodes.push({
+              label: segments[i - 1]
+                .replace(/[-_]/g, " ")
+                .replace(/\.\w+$/, "")
+                .split(" ")
+                .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(" "),
+              url: intermediateUrl,
+              category: "website" as NodeCategory,
+              platform: "website",
+              notes: "",
+              parentUrl,
+              isIntermediate: true,
+            });
+            addedPaths.add(intermediatePath);
+            urlSet.add(intermediateUrl);
+          }
+        }
+
+        // Determine parent
+        const parentPath = segments.length <= 1 ? null : segments.slice(0, -1).join("/");
+        const parentUrl = parentPath ? `${parsed.origin}/${parentPath}` : undefined;
+
+        const fullPath = segments.join("/");
+        if (!addedPaths.has(fullPath)) {
+          nodes.push({
+            label: u.label,
+            url: u.url,
+            category: "website" as NodeCategory,
+            platform: "website",
+            notes: "",
+            parentUrl: parentUrl && urlSet.has(parentUrl) ? parentUrl : undefined,
+          });
+          addedPaths.add(fullPath);
+        }
+      } catch {
+        nodes.push({
+          label: u.label,
+          url: u.url,
+          category: "website" as NodeCategory,
+          platform: "website",
+          notes: "",
+        });
+      }
+    }
 
     onImport(nodes);
     onOpenChange(false);
