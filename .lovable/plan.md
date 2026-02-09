@@ -1,81 +1,40 @@
 
-# Plan: Update Pricing Tables with Accurate Feature Lists
 
-## Overview
-Remove unimplemented and misleading features from the pricing tiers to ensure the advertised features match what is actually available in the application.
+# Fix URL Mapping to Use Directory Structure
 
-## Changes Required
+## Problem
+When mapping a URL, all discovered pages are placed on a single flat level around the hub (radial layout). The hierarchical/tree layout exists but is not the default, and users may not notice the layout toggle.
 
-### Files to Modify
-1. `src/components/landing/PricingSection.tsx` - Landing page pricing section
-2. `src/pages/Pricing.tsx` - Dedicated pricing page
+## Changes
 
-### Pro Plus Tier Updates
-**Remove:**
-- "Auto-generate maps" - No auto-generation feature exists
-- "Advanced analytics" - Same as Pro analytics
-- "White-label exports" - Pro already removes watermarks
+### 1. Default to "Site Structure" layout for Map from URL
+In `src/components/dashboard/TemplateSelector.tsx`, change the default `layoutMode` state from `'radial'` to `'hierarchical'` so URL-mapped sites automatically use the tree structure based on URL path segments.
 
-**Keep:**
-- "Everything in Pro"
-- "CSV bulk import"
-- "URL crawler"
+### 2. Fix the URLCrawlerDialog (editor) to also support hierarchy
+The `src/components/editor/URLCrawlerDialog.tsx` (used from within the editor) currently imports all URLs as flat nodes with no parent-child edges. Update it to parse URL path segments and create hierarchical edges between nodes, so pages like `/products/shoes` become children of `/products`.
 
-**Consider adding (if accurate):**
-- Could add "Bulk node creation" to better describe CSV/URL crawler value
-
-### Team Tier Updates
-**Remove:**
-- "SSO integration" - Not implemented
-- "API access" - No public API exists
-- "Dedicated support" - No distinct support channel
-
-**Keep:**
-- "Everything in Pro Plus"
-- "Up to 5 team members"
-- "Shared workspace"
-- "Team collaboration"
-- "Admin controls"
-
-**Consider adding (if implemented):**
-- "Team analytics" (if there are team-specific analytics features)
-- "Priority email support" (more honest than "dedicated")
-
-### Updated Feature Lists
-
-**Pro Plus features (proposed):**
-```
-"Everything in Pro",
-"CSV bulk import",
-"URL crawler",
-"Bulk node creation"
-```
-
-**Team features (proposed):**
-```
-"Everything in Pro Plus",
-"Up to 5 team members",
-"Shared workspace",
-"Team collaboration",
-"Admin controls",
-"Priority support"
-```
+### 3. Improve intermediate path node creation
+Currently, if a site has `/blog/post-1` but no explicit `/blog` page in the crawl results, the tree structure breaks (the post goes directly under the hub). Add logic to auto-create intermediate "directory" nodes for missing parent paths, ensuring a proper tree structure.
 
 ---
 
 ## Technical Details
 
-Both pricing files have similar `plans` arrays. The changes involve updating the `features` arrays for the "Pro Plus" and "Team" plan objects.
+### File: `src/components/dashboard/TemplateSelector.tsx`
+- **Line ~263**: Change `useState<LayoutMode>('radial')` to `useState<LayoutMode>('hierarchical')`
+- **Lines ~387, ~395**: Update `handleClose` and `handleBack` to reset to `'hierarchical'` instead of `'radial'`
+- **Lines 153-178** (createHierarchicalLayout): Enhance the tree-building logic to create intermediate nodes for missing path segments. For example, if we have `/products/shoes/sneakers` but no `/products` or `/products/shoes` in the discovered URLs, create placeholder nodes for those directories.
 
-### PricingSection.tsx (lines 48-55 and 66-74)
-Update the Pro Plus features array to remove 3 items and the Team features array to remove 3 items.
+### File: `src/components/editor/URLCrawlerDialog.tsx`
+- Update the `handleImport` callback to include hierarchy information (parent-child relationships based on URL paths) so that when nodes are added to the editor canvas, they get proper edges reflecting the directory structure rather than all connecting flat to the hub.
 
-### Pricing.tsx (lines 60-68 and 79-88)
-Same updates as above, matching the landing page changes.
+### Intermediate Node Creation Logic (pseudocode)
+```text
+For each URL's path segments:
+  1. Walk up the path (e.g., /a/b/c -> check /a/b, then /a)
+  2. If a parent path doesn't exist in the discovered URLs, create a "directory" node for it
+  3. Connect child to its nearest parent in the tree
+```
 
----
+This ensures that even if Firecrawl doesn't return every intermediate directory page, the map still shows proper nesting.
 
-## Implementation Notes
-- The changes are purely content/copy updates to arrays
-- No logic changes required
-- Both files need to be updated in sync to maintain consistency
