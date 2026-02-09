@@ -503,50 +503,151 @@ function MapEditorInner() {
 
   // Handle bulk import from CSV or URL crawler
   const handleBulkImport = useCallback(
-    (importedNodes: { label: string; url: string; category: NodeCategory; platform: string; notes: string }[]) => {
-      // Get hub node position for radial layout
+    (importedNodes: { label: string; url: string; category: NodeCategory; platform: string; notes: string; parentUrl?: string; isIntermediate?: boolean }[]) => {
+      // Get hub node position for hierarchical layout
       const hubNode = nodes.find(n => n.type === "hubNode");
       const centerX = hubNode?.position.x ?? 400;
       const centerY = hubNode?.position.y ?? 200;
-      const baseRadius = 200;
-      
-      const newNodes: Node[] = importedNodes.map((nodeData, index) => {
-        // Calculate radial position
-        const angle = (index / importedNodes.length) * 2 * Math.PI - Math.PI / 2;
-        const radius = baseRadius + Math.floor(index / 8) * 100; // Expand radius every 8 nodes
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
-        
-        return {
-          id: `node-${nodeIdCounter.current++}`,
-          type: "linkNode",
-          position: { x, y },
-          data: {
-            label: nodeData.label,
-            url: nodeData.url,
-            category: nodeData.category,
-            platform: nodeData.platform,
-            notes: nodeData.notes,
-            brandColor: mapSettings.primaryColor,
-            nodeStyle: mapSettings.nodeStyle,
-          },
-        };
-      });
-      
-      setNodes((nds) => [...nds, ...newNodes]);
-      
-      // Auto-connect to hub if it exists
-      if (hubNode) {
-        const newEdges: Edge[] = newNodes.map((node) => ({
-          id: `edge-${hubNode.id}-${node.id}`,
-          source: hubNode.id,
-          target: node.id,
-          animated: true,
-        }));
+
+      // Check if we have hierarchy info (parentUrl fields)
+      const hasHierarchy = importedNodes.some(n => n.parentUrl);
+
+      if (hasHierarchy) {
+        // Hierarchical layout using URL path structure
+        const urlToNodeId = new Map<string, string>();
+        const newNodes: Node[] = [];
+        const levelHeight = 120;
+        const nodeWidth = 180;
+        const nodeSpacing = 40;
+
+        // Build tree structure
+        interface TreeItem {
+          data: typeof importedNodes[0];
+          children: TreeItem[];
+          nodeId: string;
+        }
+
+        const rootChildren: TreeItem[] = [];
+        const urlToTree = new Map<string, TreeItem>();
+
+        // First pass: create tree items
+        importedNodes.forEach((nodeData, index) => {
+          const nodeId = `node-${nodeIdCounter.current++}`;
+          urlToNodeId.set(nodeData.url, nodeId);
+          const item: TreeItem = { data: nodeData, children: [], nodeId };
+          urlToTree.set(nodeData.url, item);
+        });
+
+        // Second pass: build tree
+        for (const item of urlToTree.values()) {
+          if (item.data.parentUrl && urlToTree.has(item.data.parentUrl)) {
+            urlToTree.get(item.data.parentUrl)!.children.push(item);
+          } else {
+            rootChildren.push(item);
+          }
+        }
+
+        // Calculate subtree widths
+        function getSubtreeWidth(item: TreeItem): number {
+          if (item.children.length === 0) return nodeWidth;
+          return item.children.reduce((sum, child) => sum + getSubtreeWidth(child), 0) +
+            (item.children.length - 1) * nodeSpacing;
+        }
+
+        // Position nodes
+        const newEdges: Edge[] = [];
+
+        function positionItem(item: TreeItem, x: number, y: number, parentId: string) {
+          newNodes.push({
+            id: item.nodeId,
+            type: "linkNode",
+            position: { x, y },
+            data: {
+              label: item.data.label,
+              url: item.data.url,
+              category: item.data.category,
+              platform: item.data.platform,
+              notes: item.data.notes,
+              brandColor: mapSettings.primaryColor,
+              nodeStyle: mapSettings.nodeStyle,
+            },
+          });
+
+          newEdges.push({
+            id: `edge-${parentId}-${item.nodeId}`,
+            source: parentId,
+            target: item.nodeId,
+            animated: true,
+          });
+
+          if (item.children.length > 0) {
+            const totalWidth = getSubtreeWidth(item);
+            let currentX = x - totalWidth / 2;
+            item.children.forEach(child => {
+              const childWidth = getSubtreeWidth(child);
+              const childX = currentX + childWidth / 2;
+              positionItem(child, childX, y + levelHeight, item.nodeId);
+              currentX += childWidth + nodeSpacing;
+            });
+          }
+        }
+
+        // Layout root children under hub
+        if (hubNode && rootChildren.length > 0) {
+          const totalWidth = rootChildren.reduce((sum, child) => sum + getSubtreeWidth(child), 0) +
+            (rootChildren.length - 1) * nodeSpacing;
+          let currentX = centerX - totalWidth / 2;
+          const startY = centerY + levelHeight;
+
+          rootChildren.forEach(child => {
+            const childWidth = getSubtreeWidth(child);
+            const childX = currentX + childWidth / 2;
+            positionItem(child, childX, startY, hubNode.id);
+            currentX += childWidth + nodeSpacing;
+          });
+        }
+
+        setNodes((nds) => [...nds, ...newNodes]);
         setEdges((eds) => [...eds, ...newEdges]);
+      } else {
+        // Flat radial layout (CSV import or no hierarchy)
+        const baseRadius = 200;
+        const newNodes: Node[] = importedNodes.map((nodeData, index) => {
+          const angle = (index / importedNodes.length) * 2 * Math.PI - Math.PI / 2;
+          const radius = baseRadius + Math.floor(index / 8) * 100;
+          const x = centerX + radius * Math.cos(angle);
+          const y = centerY + radius * Math.sin(angle);
+
+          return {
+            id: `node-${nodeIdCounter.current++}`,
+            type: "linkNode",
+            position: { x, y },
+            data: {
+              label: nodeData.label,
+              url: nodeData.url,
+              category: nodeData.category,
+              platform: nodeData.platform,
+              notes: nodeData.notes,
+              brandColor: mapSettings.primaryColor,
+              nodeStyle: mapSettings.nodeStyle,
+            },
+          };
+        });
+
+        setNodes((nds) => [...nds, ...newNodes]);
+
+        if (hubNode) {
+          const newEdges: Edge[] = newNodes.map((node) => ({
+            id: `edge-${hubNode.id}-${node.id}`,
+            source: hubNode.id,
+            target: node.id,
+            animated: true,
+          }));
+          setEdges((eds) => [...eds, ...newEdges]);
+        }
       }
     },
-    [nodes, setNodes, setEdges]
+    [nodes, setNodes, setEdges, mapSettings]
   );
 
   const cycleBackground = () => {

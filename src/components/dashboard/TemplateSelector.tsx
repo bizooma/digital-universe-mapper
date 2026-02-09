@@ -150,23 +150,42 @@ function createHierarchicalLayout(urls: DiscoveredURL[], siteUrl: string): { nod
     return aSegments - bSegments;
   });
 
-  // Build tree
+  // Build tree with intermediate directory nodes
   sortedUrls.forEach(urlData => {
     const segments = getPathSegments(urlData.url);
     if (segments.length === 0) return; // Skip root URLs
     
     const fullPath = segments.join("/");
+    if (pathMap.has(fullPath)) return; // Already exists
     
-    // Find parent
-    let parentPath = "";
-    for (let i = segments.length - 1; i >= 0; i--) {
-      const testPath = segments.slice(0, i).join("/");
-      if (pathMap.has(testPath)) {
-        parentPath = testPath;
-        break;
+    // Ensure all intermediate paths exist
+    for (let i = 1; i < segments.length; i++) {
+      const intermediatePath = segments.slice(0, i).join("/");
+      if (!pathMap.has(intermediatePath)) {
+        // Find parent for this intermediate node
+        const parentPath = i === 1 ? "" : segments.slice(0, i - 1).join("/");
+        const parent = pathMap.get(parentPath) || root;
+        
+        const parsedUrl = new URL(urlData.url);
+        const intermediateUrl = `${parsedUrl.origin}/${intermediatePath}`;
+        const intermediateNode: TreeNode = {
+          url: intermediateUrl,
+          label: segments[i - 1]
+            .replace(/[-_]/g, " ")
+            .replace(/\.\w+$/, "")
+            .split(" ")
+            .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(" "),
+          path: intermediatePath,
+          children: [],
+        };
+        parent.children.push(intermediateNode);
+        pathMap.set(intermediatePath, intermediateNode);
       }
     }
-
+    
+    // Now add the actual node under its direct parent
+    const parentPath = segments.length === 1 ? "" : segments.slice(0, -1).join("/");
     const parent = pathMap.get(parentPath) || root;
     const newNode: TreeNode = {
       url: urlData.url,
@@ -264,7 +283,7 @@ export function TemplateSelector({ open, onOpenChange, onSelect }: TemplateSelec
   const [isCreatingMap, setIsCreatingMap] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [discoveredUrls, setDiscoveredUrls] = useState<DiscoveredURL[]>([]);
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('radial');
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('hierarchical');
 
   const handleUrlCrawlerClick = () => {
     if (!isProPlus) {
@@ -384,7 +403,7 @@ export function TemplateSelector({ open, onOpenChange, onSelect }: TemplateSelec
     setDiscoveredUrls([]);
     setInputUrl("");
     setError(null);
-    setLayoutMode('radial');
+    setLayoutMode('hierarchical');
   };
 
   const handleBack = () => {
@@ -392,7 +411,7 @@ export function TemplateSelector({ open, onOpenChange, onSelect }: TemplateSelec
     setDiscoveredUrls([]);
     setInputUrl("");
     setError(null);
-    setLayoutMode('radial');
+    setLayoutMode('hierarchical');
   };
 
   const selectedCount = discoveredUrls.filter(u => u.selected).length;
