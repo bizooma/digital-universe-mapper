@@ -192,7 +192,7 @@ YouTube,https://youtube.com/@yourchannel,content,youtube,Video content`;
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "linkscape-import-template.csv";
+    a.download = "mapprr-import-template.csv";
     a.click();
     URL.revokeObjectURL(url);
   };

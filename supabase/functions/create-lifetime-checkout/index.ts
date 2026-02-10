@@ -49,7 +49,7 @@ serve(async (req) => {
       logStep("No existing Stripe customer found, will create new one");
     }
 
-    const origin = req.headers.get("origin") || "https://linkscape.app";
+    const origin = req.headers.get("origin") || "https://mapprr.com";
     
     // Create one-time payment session (not subscription)
     const session = await stripe.checkout.sessions.create({

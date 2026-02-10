@@ -402,7 +402,7 @@ export default function Pricing() {
                 Frequently asked questions
               </h2>
               <p className="text-lg text-muted-foreground">
-                Everything you need to know about LinkScape pricing
+                Everything you need to know about Mapprr pricing
               </p>
             </div>
 

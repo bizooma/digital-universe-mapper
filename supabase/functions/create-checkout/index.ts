@@ -65,7 +65,7 @@ serve(async (req) => {
       logStep("No existing Stripe customer found, will create new one");
     }
 
-    const origin = req.headers.get("origin") || "https://linkscape.app";
+    const origin = req.headers.get("origin") || "https://mapprr.com";
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
