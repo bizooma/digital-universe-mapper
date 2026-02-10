@@ -21,7 +21,7 @@ export const onboardingSteps: OnboardingStep[] = [
   {
     id: "hub",
     title: "This is your Hub",
-    description: "The central node represents your brand or identity. Double-click to rename it.",
+    description: "The central node represents your brand or identity. Click on it to rename it.",
     target: "[data-onboarding='hub-node']",
     position: "right",
   },
