@@ -88,7 +88,7 @@ export default function Dashboard() {
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
   const { user, signOut } = useAuth();
-  const { plan, isPro, isProPlus, isFreeTier, isAdmin, limits, canCreateMap, checkSubscription, openCustomerPortal } = useSubscription();
+  const { plan, isPro, isProPlus, isFreeTier, isAdmin, isLifetime, limits, canCreateMap, checkSubscription, openCustomerPortal } = useSubscription();
   const [portalLoading, setPortalLoading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
