@@ -157,12 +157,20 @@ export default function Dashboard() {
   const currentMapCount = userMaps.length;
 
   // Check for upgrade success/cancel from URL params
+  const verifyingRef = useRef(false);
   useEffect(() => {
     const upgradeStatus = searchParams.get("upgrade");
     const lifetimeStatus = searchParams.get("lifetime");
     const sessionId = searchParams.get("session_id");
     
-    if (lifetimeStatus === "success" && sessionId) {
+    if (lifetimeStatus === "success" && sessionId && !verifyingRef.current) {
+      verifyingRef.current = true;
+      // Clean URL params to prevent re-triggers
+      const url = new URL(window.location.href);
+      url.searchParams.delete("lifetime");
+      url.searchParams.delete("session_id");
+      window.history.replaceState({}, "", url.pathname + url.search);
+      
       // Verify the lifetime purchase
       const verifyLifetimePurchase = async () => {
         try {
