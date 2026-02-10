@@ -55,6 +55,7 @@ export default function LifetimeDeal() {
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const canceled = searchParams.get("canceled") === "true";
+  const alreadyHasAccess = isProPlus || isLifetime;
 
   useEffect(() => {
     if (canceled) {
@@ -64,7 +65,6 @@ export default function LifetimeDeal() {
 
   const handlePurchase = async () => {
     if (!session) {
-      // Redirect to signup with return URL
       navigate("/signup?redirect=/lifetime");
       return;
     }
@@ -87,7 +87,14 @@ export default function LifetimeDeal() {
     }
   };
 
-  const alreadyHasAccess = isProPlus || isLifetime;
+  // Auto-trigger checkout when redirected back from signup
+  useEffect(() => {
+    const autoCheckout = searchParams.get("checkout") === "true";
+    if (autoCheckout && session && !subscriptionLoading && !alreadyHasAccess && !isLoading) {
+      handlePurchase();
+    }
+  }, [session, subscriptionLoading, searchParams]);
+
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

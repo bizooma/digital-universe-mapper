@@ -39,8 +39,9 @@ export default function Signup() {
       return;
     }
 
-    toast.success("Account created! Taking you to your dashboard...");
-    navigate(redirectTo || "/dashboard");
+    const destination = redirectTo ? `${redirectTo}${redirectTo.includes('?') ? '&' : '?'}checkout=true` : "/dashboard";
+    toast.success("Account created!");
+    navigate(destination);
   };
 
   return (
