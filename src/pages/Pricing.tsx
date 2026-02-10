@@ -100,7 +100,7 @@ const faqs = [
   },
   {
     question: "What payment methods do you accept?",
-    answer: "We accept all major credit cards (Visa, Mastercard, American Express) through our secure payment processor, Stripe.",
+    answer: "We accept all major credit cards (Visa, Mastercard, American Express) through Stripe. You'll see Bizooma, LLC on the Stripe checkout page — that's our parent company.",
   },
   {
     question: "Is there a limit to how many nodes I can add?",
