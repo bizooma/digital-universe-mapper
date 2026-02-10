@@ -2,6 +2,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 
 export default function Terms() {
   useCanonicalUrl();
@@ -12,6 +13,10 @@ export default function Terms() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://mapprr.com" },
+        { name: "Terms of Service", url: "https://mapprr.com/terms" },
+      ]} />
       <Navbar />
       <main className="flex-1 container max-w-4xl py-16 px-4">
         <h1 className="text-3xl font-bold text-foreground mb-8">Terms of Service</h1>

@@ -10,6 +10,8 @@ import { useSubscription, PriceKey } from "@/hooks/useSubscription";
 import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { toast } from "sonner";
+import { FAQSchema } from "@/components/seo/FAQSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 
 const plans = [
   {
@@ -90,6 +92,18 @@ const plans = [
 ];
 
 const faqs = [
+  {
+    question: "What is Mapprr?",
+    answer: "Mapprr is a visual site mapping tool that helps you organize your entire online presence — websites, social media, and digital properties — into one beautiful, interactive flowchart.",
+  },
+  {
+    question: "How much does Mapprr cost?",
+    answer: "Mapprr offers a free plan with 1 map and up to 5 nodes. Paid plans start at $8/month for Pro, $15/month for Pro Plus, and $20/month for Team. Annual billing saves 25%.",
+  },
+  {
+    question: "How do I create a site map?",
+    answer: "Sign up for free, then use the drag-and-drop editor to add your websites and social profiles as nodes. You can also bulk import links via CSV or use the URL crawler to auto-discover pages.",
+  },
   {
     question: "How does the free plan work?",
     answer: "Start with our free plan to explore Mapprr. No credit card required. You can upgrade to Pro anytime for more features.",
@@ -254,6 +268,11 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <FAQSchema faqs={faqs} />
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://mapprr.com" },
+        { name: "Pricing", url: "https://mapprr.com/pricing" },
+      ]} />
 
       <main className="pt-24">
         {/* Header */}

@@ -101,7 +101,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight"
+            className="hero-speakable-headline text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight"
           >
             <span className="text-white">Map your</span>
             <br />
@@ -110,14 +110,23 @@ export function HeroSection() {
             </span>
           </motion.h1>
 
+          {/* What is Mapprr - Voice SEO definition block */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="hero-speakable-description text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-4"
+          >
+            Mapprr is a visual site mapping tool that lets you organize your entire online presence in one beautiful, interactive flowchart.
+          </motion.p>
+
           {/* Subheadline */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-10"
+            className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto mb-10"
           >
-            Visualize your entire online presence in one beautiful, interactive flowchart. 
             Connect your websites, social media, and digital properties like never before.
           </motion.p>
 
