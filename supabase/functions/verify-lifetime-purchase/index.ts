@@ -99,6 +99,16 @@ serve(async (req) => {
       .single();
 
     if (insertError) {
+      if (insertError.message.includes("duplicate key")) {
+        logStep("Duplicate insert detected, treating as success");
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: "Lifetime purchase already recorded" 
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
       throw new Error(`Failed to record purchase: ${insertError.message}`);
     }
 
