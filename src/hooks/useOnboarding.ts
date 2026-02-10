@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-const ONBOARDING_KEY = "linkscape_onboarding_completed";
+const ONBOARDING_KEY = "mapprr_onboarding_completed";
 
 export interface OnboardingStep {
   id: string;
