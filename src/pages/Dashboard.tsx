@@ -505,7 +505,7 @@ export default function Dashboard() {
                 {isProPlus ? (
                   <Badge className="bg-gradient-to-r from-primary to-accent text-primary-foreground text-[10px] px-1.5 py-0 h-4 gap-1">
                     <Sparkles className="h-2.5 w-2.5" />
-                    Pro Plus
+                    {isLifetime ? "Lifetime Pro Plus" : "Pro Plus"}
                   </Badge>
                 ) : isPro ? (
                   <>
