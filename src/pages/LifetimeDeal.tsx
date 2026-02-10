@@ -10,6 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
+import { usePageMeta } from "@/hooks/usePageMeta";
+import { FAQSchema } from "@/components/seo/FAQSchema";
+import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 
 const features = [
   "Unlimited maps & nodes",
@@ -46,6 +50,11 @@ const faqs = [
 ];
 
 export default function LifetimeDeal() {
+  useCanonicalUrl();
+  usePageMeta({
+    title: "Lifetime Deal - Pro Plus Access",
+    description: "Get lifetime Pro Plus access to Mapprr for a one-time payment of $59. Unlimited maps, all export formats, CSV import, URL crawler, and all future updates.",
+  });
   const { session } = useAuth();
   const subscription = useSubscription();
   const isProPlus = subscription.isProPlus;
@@ -99,6 +108,11 @@ export default function LifetimeDeal() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
+      <FAQSchema faqs={faqs} />
+      <BreadcrumbSchema items={[
+        { name: "Home", url: "https://mapprr.com" },
+        { name: "Lifetime Deal", url: "https://mapprr.com/lifetime" },
+      ]} />
       
       <main className="flex-1">
         {/* Hero Section */}

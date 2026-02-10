@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { AgenciesSection } from "@/components/landing/AgenciesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
@@ -21,6 +22,7 @@ const Index = () => {
       <Navbar />
       <main>
         <HeroSection />
+        <HowItWorksSection />
         <FeaturesSection />
         <AgenciesSection />
         <PricingSection />
@@ -39,7 +41,8 @@ const Index = () => {
             allowFullScreen 
             loading="lazy" 
             referrerPolicy="no-referrer-when-downgrade"
-            title="Bizooma Location"
+            title="Bizooma Digital Marketing Agency location on Google Maps"
+            aria-label="Google Maps showing Bizooma Digital Marketing Agency location"
           />
         </section>
       </main>
