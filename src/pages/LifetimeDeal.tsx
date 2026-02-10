@@ -55,12 +55,37 @@ export default function LifetimeDeal() {
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const canceled = searchParams.get("canceled") === "true";
+  const alreadyHasAccess = isProPlus || isLifetime;
 
   useEffect(() => {
     if (canceled) {
       toast.error("Purchase canceled. No charges were made.");
     }
   }, [canceled]);
+
+  const handlePurchase = async () => {
+    if (!session) {
+      navigate("/signup?redirect=/lifetime");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-lifetime-checkout");
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      toast.error("Failed to start checkout. Please try again.");
+      setIsLoading(false);
+    }
+  };
 
   // Auto-trigger checkout when redirected back from signup
   useEffect(() => {
