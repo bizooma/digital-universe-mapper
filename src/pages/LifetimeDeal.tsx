@@ -62,6 +62,14 @@ export default function LifetimeDeal() {
     }
   }, [canceled]);
 
+  // Auto-trigger checkout when redirected back from signup
+  useEffect(() => {
+    const autoCheckout = searchParams.get("checkout") === "true";
+    if (autoCheckout && session && !subscriptionLoading && !alreadyHasAccess && !isLoading) {
+      handlePurchase();
+    }
+  }, [session, subscriptionLoading, searchParams]);
+
   const handlePurchase = async () => {
     if (!session) {
       // Redirect to signup with return URL
