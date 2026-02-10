@@ -1,31 +1,56 @@
 
 
-# Fix Lifetime Deal Signup Redirect Flow
+# Fix Lifetime Purchase Verification Race Condition
 
 ## Problem
-When an unauthenticated user clicks "Get Lifetime Access" on `/lifetime`, they are redirected to `/signup?redirect=/lifetime`. However, the Signup page ignores the `redirect` query parameter and always sends users to `/dashboard` after account creation. The user never returns to `/lifetime` to complete the Stripe payment.
+After completing Stripe checkout, the dashboard calls `verify-lifetime-purchase` multiple times simultaneously (React strict mode / re-renders). The first call succeeds, but subsequent calls fail with a "duplicate key value violates unique constraint" error because the purchase was already recorded. This causes the toast error you saw.
 
-## Solution
-Update the Signup page to read the `redirect` query parameter and navigate there after successful signup instead of always going to `/dashboard`.
+## Root Cause
+The edge function checks for an existing record before inserting, but when 3 calls arrive at the same time, they all pass the check before any insert completes -- a classic race condition.
 
 ## Changes
 
-### File: `src/pages/Signup.tsx`
-1. Import `useSearchParams` from `react-router-dom`
-2. Read the `redirect` query parameter
-3. On successful signup, navigate to the redirect URL if present, otherwise fall back to `/dashboard`
+### 1. Edge Function: Handle duplicate gracefully
+**File: `supabase/functions/verify-lifetime-purchase/index.ts`**
+- Catch the specific "duplicate key" insert error and treat it as a success instead of throwing a 500 error
+- This makes the function idempotent -- calling it multiple times with the same data always succeeds
 
-The change is minimal -- roughly 3 lines modified:
+### 2. Dashboard: Prevent duplicate calls
+**File: `src/pages/Dashboard.tsx`**
+- Add a ref to track whether verification is already in progress
+- Skip the call if it's already running, preventing the race condition on the client side
+- Clean up the URL params after the first verification attempt to prevent re-triggering on re-renders
+
+---
+
+## Technical Details
+
+### Edge Function Fix (verify-lifetime-purchase)
+After the insert, if the error message contains "duplicate key", return a 200 success response instead of throwing:
 
 ```typescript
-// Add useSearchParams
-const [searchParams] = useSearchParams();
-const redirectTo = searchParams.get("redirect");
-
-// In handleSubmit, change:
-navigate("/dashboard");
-// To:
-navigate(redirectTo || "/dashboard");
+if (insertError) {
+  if (insertError.message.includes("duplicate key")) {
+    return new Response(JSON.stringify({
+      success: true,
+      message: "Lifetime purchase already recorded"
+    }), { status: 200, headers: ... });
+  }
+  throw new Error(`Failed to record purchase: ${insertError.message}`);
+}
 ```
 
-This matches the existing pattern where `/lifetime` already passes `?redirect=/lifetime` and expects it to be honored. Once the user lands back on `/lifetime` after signup, they will now be authenticated, so `handlePurchase` will proceed directly to the Stripe checkout flow.
+### Dashboard Fix (Dashboard.tsx)
+Add a ref guard to prevent concurrent calls:
+
+```typescript
+const verifyingRef = useRef(false);
+
+// Inside the useEffect:
+if (lifetimeStatus === "success" && sessionId && !verifyingRef.current) {
+  verifyingRef.current = true;
+  verifyLifetimePurchase();
+}
+```
+
+Also remove `lifetime` and `session_id` from the URL after triggering verification to prevent re-triggers.
