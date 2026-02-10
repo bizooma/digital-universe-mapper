@@ -40,7 +40,7 @@ export default function Signup() {
     }
 
     toast.success("Account created! Taking you to your dashboard...");
-    navigate("/dashboard");
+    navigate(redirectTo || "/dashboard");
   };
 
   return (
