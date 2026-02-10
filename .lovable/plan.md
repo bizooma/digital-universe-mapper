@@ -1,56 +1,41 @@
 
 
-# Fix Lifetime Purchase Verification Race Condition
+# Replace All "LinkScape" References with "Mapprr"
 
 ## Problem
-After completing Stripe checkout, the dashboard calls `verify-lifetime-purchase` multiple times simultaneously (React strict mode / re-renders). The first call succeeds, but subsequent calls fail with a "duplicate key value violates unique constraint" error because the purchase was already recorded. This causes the toast error you saw.
-
-## Root Cause
-The edge function checks for an existing record before inserting, but when 3 calls arrive at the same time, they all pass the check before any insert completes -- a classic race condition.
+The app was rebranded from "LinkScape" to "Mapprr," but 85 references across 13 files still use the old name.
 
 ## Changes
 
-### 1. Edge Function: Handle duplicate gracefully
-**File: `supabase/functions/verify-lifetime-purchase/index.ts`**
-- Catch the specific "duplicate key" insert error and treat it as a success instead of throwing a 500 error
-- This makes the function idempotent -- calling it multiple times with the same data always succeeds
+### 1. Onboarding (the issue you spotted)
+**`src/hooks/useOnboarding.ts`**
+- Change `"Welcome to LinkScape! 🎉"` to `"Welcome to Mapprr! 🎉"`
+- Rename the localStorage key from `linkscape_onboarding_completed` to `mapprr_onboarding_completed`
 
-### 2. Dashboard: Prevent duplicate calls
-**File: `src/pages/Dashboard.tsx`**
-- Add a ref to track whether verification is already in progress
-- Skip the call if it's already running, preventing the race condition on the client side
-- Clean up the URL params after the first verification attempt to prevent re-triggering on re-renders
+### 2. Landing / Marketing Pages
+- **`src/components/landing/CTASection.tsx`** -- Update CTA copy referencing LinkScape to Mapprr
+- **`src/pages/Pricing.tsx`** -- Update FAQ answers and section text (2 occurrences)
 
----
+### 3. Auth Pages (logo text still says "LinkScape")
+- **`src/pages/ForgotPassword.tsx`** -- Update brand name in header
+- **`src/pages/ResetPassword.tsx`** -- Update brand name in header
+- **`src/pages/SharedMaps.tsx`** -- Update brand name in header and footer (2 occurrences)
 
-## Technical Details
+### 4. Editor
+- **`src/components/editor/CSVImportDialog.tsx`** -- Rename downloaded template file from `linkscape-import-template.csv` to `mapprr-import-template.csv`
 
-### Edge Function Fix (verify-lifetime-purchase)
-After the insert, if the error message contains "duplicate key", return a 200 success response instead of throwing:
+### 5. Edge Functions (code comments and fallback URLs)
+- **`supabase/functions/create-checkout/index.ts`** -- Update comment and fallback origin URL
+- **`supabase/functions/customer-portal/index.ts`** -- Update fallback origin URL
+- **`supabase/functions/create-lifetime-checkout/index.ts`** -- Update fallback origin URL
+- **`supabase/functions/check-subscription/index.ts`** -- Update comment
+- **`supabase/functions/admin-list-users/index.ts`** -- Update comment
 
-```typescript
-if (insertError) {
-  if (insertError.message.includes("duplicate key")) {
-    return new Response(JSON.stringify({
-      success: true,
-      message: "Lifetime purchase already recorded"
-    }), { status: 200, headers: ... });
-  }
-  throw new Error(`Failed to record purchase: ${insertError.message}`);
-}
-```
+### 6. CSS Comment
+- **`src/index.css`** -- Update design system comment from "LinkScape" to "Mapprr"
 
-### Dashboard Fix (Dashboard.tsx)
-Add a ref guard to prevent concurrent calls:
+## Notes
+- All changes are straightforward find-and-replace of the brand name
+- The localStorage key rename means users who already completed onboarding will see the tour once more (a minor, acceptable side effect)
+- Fallback origin URLs in edge functions will be updated to `https://mapprr.com`
 
-```typescript
-const verifyingRef = useRef(false);
-
-// Inside the useEffect:
-if (lifetimeStatus === "success" && sessionId && !verifyingRef.current) {
-  verifyingRef.current = true;
-  verifyLifetimePurchase();
-}
-```
-
-Also remove `lifetime` and `session_id` from the URL after triggering verification to prevent re-triggers.
