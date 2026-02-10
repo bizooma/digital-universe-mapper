@@ -23,6 +23,8 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
