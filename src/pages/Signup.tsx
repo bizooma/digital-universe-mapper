@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, User } from "lucide-react";
 import mapprLogo from "@/assets/mapprr-logo.png";
@@ -23,6 +23,8 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,7 +40,7 @@ export default function Signup() {
     }
 
     toast.success("Account created! Taking you to your dashboard...");
-    navigate("/dashboard");
+    navigate(redirectTo || "/dashboard");
   };
 
   return (
