@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-const ONBOARDING_KEY = "linkscape_onboarding_completed";
+const ONBOARDING_KEY = "mapprr_onboarding_completed";
 
 export interface OnboardingStep {
   id: string;
@@ -13,7 +13,7 @@ export interface OnboardingStep {
 export const onboardingSteps: OnboardingStep[] = [
   {
     id: "welcome",
-    title: "Welcome to LinkScape! 🎉",
+    title: "Welcome to Mapprr! 🎉",
     description: "Let's take a quick tour to help you get started mapping your digital presence.",
     target: "[data-onboarding='canvas']",
     position: "bottom",

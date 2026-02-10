@@ -55,7 +55,7 @@ export default function SharedMaps() {
             <div className="bg-gradient-primary p-2 rounded-lg">
               <Zap className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground">LinkScape</span>
+            <span className="text-xl font-bold text-foreground">Mapprr</span>
           </Link>
         </div>
 
@@ -140,7 +140,7 @@ export default function SharedMaps() {
               <div className="bg-gradient-primary p-1.5 rounded-lg">
                 <Zap className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="font-bold text-foreground">LinkScape</span>
+              <span className="font-bold text-foreground">Mapprr</span>
             </Link>
           </div>
         </header>

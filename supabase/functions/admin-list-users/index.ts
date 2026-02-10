@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Product IDs for LinkScape plans
+// Product IDs for Mapprr plans
 const PRODUCT_IDS: Record<string, string> = {
   "prod_Tv1XmbuF1Eq9mD": "pro",
   "prod_Tv1Xpev3vVpb63": "pro",

@@ -162,7 +162,7 @@ export default function ResetPassword() {
               <Zap className="h-5 w-5 text-primary-foreground" />
             </div>
           </div>
-          <span className="text-xl font-bold text-foreground">LinkScape</span>
+          <span className="text-xl font-bold text-foreground">Mapprr</span>
         </Link>
 
         <h1 className="text-2xl font-bold text-foreground mb-2">

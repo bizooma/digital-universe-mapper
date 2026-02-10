@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Price IDs for LinkScape plans
+// Price IDs for Mapprr plans
 const PRICE_IDS = {
   pro_monthly: "price_1SxBUMEV6sbsDlR8G7x4pjdQ",
   pro_yearly: "price_1SxBUkEV6sbsDlR8Scuv0ASd",
@@ -65,7 +65,7 @@ serve(async (req) => {
       logStep("No existing Stripe customer found, will create new one");
     }
 
-    const origin = req.headers.get("origin") || "https://linkscape.app";
+    const origin = req.headers.get("origin") || "https://mapprr.com";
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
