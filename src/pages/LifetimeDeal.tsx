@@ -95,32 +95,6 @@ export default function LifetimeDeal() {
     }
   }, [session, subscriptionLoading, searchParams]);
 
-  const handlePurchase = async () => {
-    if (!session) {
-      // Redirect to signup with return URL
-      navigate("/signup?redirect=/lifetime");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-lifetime-checkout");
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error("No checkout URL returned");
-      }
-    } catch (err) {
-      console.error("Checkout error:", err);
-      toast.error("Failed to start checkout. Please try again.");
-      setIsLoading(false);
-    }
-  };
-
-  const alreadyHasAccess = isProPlus || isLifetime;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
