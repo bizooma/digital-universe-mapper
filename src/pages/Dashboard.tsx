@@ -370,7 +370,7 @@ export default function Dashboard() {
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
   const initials = displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
-  const planLabel = plan === "team" ? "Team Plan" : plan === "proplus" ? "Pro Plus" : plan === "pro" ? "Pro Plan" : "Free Plan";
+  const planLabel = plan === "team" ? "Team Plan" : plan === "proplus" ? (isLifetime ? "Lifetime Pro Plus" : "Pro Plus") : plan === "pro" ? "Pro Plan" : "Free Plan";
   const canCreate = canCreateMap(currentMapCount);
 
   const totalNodes = userMaps.reduce((sum, m) => sum + (m.nodes?.length || 0), 0);
