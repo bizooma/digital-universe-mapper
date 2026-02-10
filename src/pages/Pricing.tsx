@@ -92,7 +92,7 @@ const plans = [
 const faqs = [
   {
     question: "How does the free plan work?",
-    answer: "Start with our free plan to explore LinkScape. No credit card required. You can upgrade to Pro anytime for more features.",
+    answer: "Start with our free plan to explore Mapprr. No credit card required. You can upgrade to Pro anytime for more features.",
   },
   {
     question: "Can I change my plan later?",
