@@ -1,39 +1,13 @@
 import { Link } from "react-router-dom";
 import mapprLogo from "@/assets/mapprr-logo.png";
 
-const footerLinks = {
-  Product: [
-    { label: "Features", href: "/#features" },
-    { label: "Pricing", href: "/pricing" },
-    { label: "Changelog", href: "/changelog" },
-    { label: "Roadmap", href: "/roadmap" },
-  ],
-  Resources: [
-    { label: "Blog", href: "/blog" },
-    { label: "Documentation", href: "/docs" },
-    { label: "Help Center", href: "/help" },
-    { label: "API", href: "/api" },
-  ],
-  Company: [
-    { label: "About", href: "/about" },
-    { label: "Careers", href: "/careers" },
-    { label: "Contact", href: "/contact" },
-    { label: "Press Kit", href: "/press" },
-  ],
-  Legal: [
-    { label: "Privacy", href: "/privacy" },
-    { label: "Terms", href: "/terms" },
-    { label: "Cookies", href: "/cookies" },
-  ],
-};
-
 export function Footer() {
   return (
     <footer className="border-t border-border bg-card">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
           {/* Brand */}
-          <div className="col-span-2">
+          <div>
             <Link to="/" className="flex items-center mb-4">
               <img 
                 src={mapprLogo} 
@@ -47,23 +21,12 @@ export function Footer() {
           </div>
 
           {/* Links */}
-          {Object.entries(footerLinks).map(([category, links]) => (
-            <div key={category}>
-              <h4 className="font-semibold text-foreground mb-4">{category}</h4>
-              <ul className="space-y-3">
-                {links.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      to={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div className="flex flex-wrap gap-x-8 gap-y-3">
+            <Link to="/#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</Link>
+            <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
+            <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Terms</Link>
+            <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>
+          </div>
         </div>
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
