@@ -12,6 +12,9 @@ verify_jwt = false
 [functions.firecrawl-map]
 verify_jwt = false
 
+[functions.firecrawl-crawl-nav]
+verify_jwt = false
+
 [functions.send-password-reset]
 verify_jwt = false
 
