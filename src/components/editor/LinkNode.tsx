@@ -1,10 +1,6 @@
 import { memo, useState, useRef, useEffect, useCallback } from "react";
 import { Handle, Position, useReactFlow, type NodeProps } from "@xyflow/react";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+import * as HoverCardPrimitive from "@radix-ui/react-hover-card";
 import {
   Tooltip,
   TooltipContent,
@@ -241,8 +237,8 @@ function LinkNode({ data, selected }: NodeProps) {
       <Handle type="source" position={Position.Right} id="right-source" className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all" />
 
       {nodeData.url && nodeData.url !== "https://" ? (
-        <HoverCard openDelay={400} closeDelay={200}>
-          <HoverCardTrigger asChild>
+        <HoverCardPrimitive.Root openDelay={400} closeDelay={200}>
+          <HoverCardPrimitive.Trigger asChild>
             <div className="flex items-center gap-3">
               <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${config.gradient} flex items-center justify-center flex-shrink-0`}>
                 <Icon className="w-4 h-4 text-primary-foreground" />
@@ -254,12 +250,18 @@ function LinkNode({ data, selected }: NodeProps) {
                 </p>
               </div>
             </div>
-          </HoverCardTrigger>
-          <HoverCardContent side="bottom" className="w-[300px] p-3 space-y-2">
-            <ScreenshotPreview url={nodeData.url} />
-            <p className="text-xs text-muted-foreground break-all">{nodeData.url}</p>
-          </HoverCardContent>
-        </HoverCard>
+          </HoverCardPrimitive.Trigger>
+          <HoverCardPrimitive.Portal>
+            <HoverCardPrimitive.Content
+              side="bottom"
+              sideOffset={8}
+              className="z-[9999] w-[300px] p-3 space-y-2 rounded-md border bg-popover text-popover-foreground shadow-lg animate-in fade-in-0 zoom-in-95"
+            >
+              <ScreenshotPreview url={nodeData.url} />
+              <p className="text-xs text-muted-foreground break-all">{nodeData.url}</p>
+            </HoverCardPrimitive.Content>
+          </HoverCardPrimitive.Portal>
+        </HoverCardPrimitive.Root>
       ) : (
         <div className="flex items-center gap-3">
           <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${config.gradient} flex items-center justify-center flex-shrink-0`}>
