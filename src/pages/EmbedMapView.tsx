@@ -12,6 +12,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { Loader2 } from "lucide-react";
 import { nodeTypes } from "@/components/editor/LinkNode";
+import { edgeTypes } from "@/components/editor/EditableEdge";
 import { supabase } from "@/integrations/supabase/client";
 
 function EmbedMapViewInner() {
@@ -130,6 +131,7 @@ function EmbedMapViewInner() {
         edges={edges}
         onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         nodesDraggable={false}
         nodesConnectable={false}

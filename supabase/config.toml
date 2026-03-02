@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.verify-lifetime-purchase]
 verify_jwt = false
+
+[functions.check-url-status]
+verify_jwt = false

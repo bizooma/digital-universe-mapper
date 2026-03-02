@@ -1,11 +1,17 @@
 import { memo, useState, useRef, useEffect, useCallback } from "react";
 import { Handle, Position, useReactFlow, type NodeProps } from "@xyflow/react";
 import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Globe, 
   Twitter, 
@@ -51,9 +57,51 @@ export interface LinkNodeData {
   category: NodeCategory;
   platform?: string;
   notes?: string;
-  brandColor?: string; // Custom brand color from map settings
+  brandColor?: string;
   nodeStyle?: "rounded" | "square" | "pill";
+  urlStatus?: "live" | "redirect" | "broken" | "unchecked";
   [key: string]: unknown;
+}
+
+const statusColors: Record<string, string> = {
+  live: "bg-green-500",
+  redirect: "bg-yellow-500",
+  broken: "bg-red-500",
+  unchecked: "bg-muted-foreground/40",
+};
+
+const statusLabels: Record<string, string> = {
+  live: "Live",
+  redirect: "Redirect",
+  broken: "Broken",
+  unchecked: "Not checked",
+};
+
+function ScreenshotPreview({ url }: { url: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  const thumbUrl = `https://image.thum.io/get/width/300/${url}`;
+
+  if (error) {
+    return (
+      <div className="w-[280px] h-[160px] rounded-md bg-muted flex items-center justify-center text-muted-foreground text-xs">
+        Preview unavailable
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-[280px] h-[160px]">
+      {!loaded && <Skeleton className="absolute inset-0 rounded-md" />}
+      <img
+        src={thumbUrl}
+        alt="Website preview"
+        className={`w-full h-full object-cover rounded-md transition-opacity ${loaded ? "opacity-100" : "opacity-0"}`}
+        onLoad={() => setLoaded(true)}
+        onError={() => setError(true)}
+      />
+    </div>
+  );
 }
 
 const categoryConfig: Record<NodeCategory, { color: string; gradient: string }> = {
@@ -168,91 +216,65 @@ function LinkNode({ data, selected }: NodeProps) {
         ...(selected && { ringColor: borderColor })
       }}
     >
-      {/* Handles - both source and target on each side for flexible connections */}
-      {/* Top handles */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="top-target"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all"
-      />
-      <Handle
-        type="source"
-        position={Position.Top}
-        id="top-source"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all !-translate-x-3"
-      />
-      
-      {/* Bottom handles */}
-      <Handle
-        type="target"
-        position={Position.Bottom}
-        id="bottom-target"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all !translate-x-3"
-      />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id="bottom-source"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all"
-      />
-      
-      {/* Left handles */}
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="left-target"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all"
-      />
-      <Handle
-        type="source"
-        position={Position.Left}
-        id="left-source"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all !translate-y-3"
-      />
-      
-      {/* Right handles */}
-      <Handle
-        type="target"
-        position={Position.Right}
-        id="right-target"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all !-translate-y-3"
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="right-source"
-        className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all"
-      />
+      {/* Status indicator dot */}
+      {nodeData.urlStatus && (
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className={`absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full border-2 border-card ${statusColors[nodeData.urlStatus]} z-10`} />
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">
+              {statusLabels[nodeData.urlStatus]}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
 
-      <TooltipProvider delayDuration={300}>
-        <Tooltip>
-          <TooltipTrigger asChild>
+      {/* Handles */}
+      <Handle type="target" position={Position.Top} id="top-target" className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all" />
+      <Handle type="source" position={Position.Top} id="top-source" className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all !-translate-x-3" />
+      <Handle type="target" position={Position.Bottom} id="bottom-target" className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all !translate-x-3" />
+      <Handle type="source" position={Position.Bottom} id="bottom-source" className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all" />
+      <Handle type="target" position={Position.Left} id="left-target" className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all" />
+      <Handle type="source" position={Position.Left} id="left-source" className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all !translate-y-3" />
+      <Handle type="target" position={Position.Right} id="right-target" className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all !-translate-y-3" />
+      <Handle type="source" position={Position.Right} id="right-source" className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-card hover:!bg-primary hover:!scale-125 transition-all" />
+
+      {nodeData.url && nodeData.url !== "https://" ? (
+        <HoverCard openDelay={400} closeDelay={200}>
+          <HoverCardTrigger asChild>
             <div className="flex items-center gap-3">
-              <div
-                className={`w-8 h-8 rounded-lg bg-gradient-to-br ${config.gradient} flex items-center justify-center flex-shrink-0`}
-              >
+              <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${config.gradient} flex items-center justify-center flex-shrink-0`}>
                 <Icon className="w-4 h-4 text-primary-foreground" />
               </div>
               <div className="min-w-0">
-                <p className="font-medium text-foreground text-sm truncate max-w-[120px]">
-                  {nodeData.label}
+                <p className="font-medium text-foreground text-sm truncate max-w-[120px]">{nodeData.label}</p>
+                <p className="text-xs text-muted-foreground truncate max-w-[120px]">
+                  {nodeData.url.replace(/^https?:\/\//, "")}
                 </p>
-                {nodeData.url && (
-                  <p className="text-xs text-muted-foreground truncate max-w-[120px]">
-                    {nodeData.url.replace(/^https?:\/\//, "")}
-                  </p>
-                )}
               </div>
             </div>
-          </TooltipTrigger>
-          {nodeData.url && (
-            <TooltipContent side="bottom" className="max-w-xs break-all">
-              <p className="text-xs">{nodeData.url}</p>
-            </TooltipContent>
-          )}
-        </Tooltip>
-      </TooltipProvider>
+          </HoverCardTrigger>
+          <HoverCardContent side="bottom" className="w-[300px] p-3 space-y-2">
+            <ScreenshotPreview url={nodeData.url} />
+            <p className="text-xs text-muted-foreground break-all">{nodeData.url}</p>
+          </HoverCardContent>
+        </HoverCard>
+      ) : (
+        <div className="flex items-center gap-3">
+          <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${config.gradient} flex items-center justify-center flex-shrink-0`}>
+            <Icon className="w-4 h-4 text-primary-foreground" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-medium text-foreground text-sm truncate max-w-[120px]">{nodeData.label}</p>
+            {nodeData.url && (
+              <p className="text-xs text-muted-foreground truncate max-w-[120px]">
+                {nodeData.url.replace(/^https?:\/\//, "")}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
