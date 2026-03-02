@@ -217,7 +217,7 @@ function LinkNode({ data, selected }: NodeProps) {
         <TooltipProvider delayDuration={200}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={`absolute -top-2 -right-2 w-4 h-4 rounded-full border-2 border-card ${statusColors[nodeData.urlStatus]} z-10`} />
+              <div className={`absolute -top-2 -right-2 w-4 h-4 rounded-full border-2 border-card ${statusColors[nodeData.urlStatus]} ${nodeData.urlStatus === "broken" ? "animate-pulse" : ""} z-10`} />
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs">
               {statusLabels[nodeData.urlStatus]}
