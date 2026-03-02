@@ -50,9 +50,11 @@ import {
   FileSpreadsheet,
   Globe,
   Code,
+  LinkIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes, type NodeCategory, type LinkNodeData } from "@/components/editor/LinkNode";
+import { edgeTypes } from "@/components/editor/EditableEdge";
 import { AddNodePanel } from "@/components/editor/AddNodePanel";
 import { EditNodePanel } from "@/components/editor/EditNodePanel";
 import { LogoUpload } from "@/components/editor/LogoUpload";
@@ -145,6 +147,7 @@ function MapEditorInner() {
   const [showURLCrawlerDialog, setShowURLCrawlerDialog] = useState(false);
   const [showMapSettingsDialog, setShowMapSettingsDialog] = useState(false);
   const [mapSettings, setMapSettings] = useState<MapSettings>(DEFAULT_SETTINGS);
+  const [isCheckingLinks, setIsCheckingLinks] = useState(false);
   
   const { isFreeTier, isPro, isProPlus, limits, canAddNode } = useSubscription();
   const { user } = useAuth();
@@ -356,7 +359,8 @@ function MapEditorInner() {
           ...params, 
           animated: true,
           style: { strokeWidth: 2, stroke: mapSettings.primaryColor },
-          type: mapSettings.connectionStyle,
+          type: "editableEdge",
+          data: { edgeType: mapSettings.connectionStyle },
         }, eds)
       ),
     [setEdges, mapSettings.primaryColor, mapSettings.connectionStyle]
@@ -371,7 +375,8 @@ function MapEditorInner() {
       eds.map((edge) => ({
         ...edge,
         style: { ...edge.style, strokeWidth: 2, stroke: mapSettings.primaryColor },
-        type: mapSettings.connectionStyle,
+        type: "editableEdge",
+        data: { ...edge.data, edgeType: mapSettings.connectionStyle },
       }))
     );
     
@@ -395,11 +400,67 @@ function MapEditorInner() {
 
   const onEdgeClick = useCallback(
     (_event: React.MouseEvent, edge: Edge) => {
-      setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+      // Double-click to delete; single click is handled by EditableEdge for labels
+    },
+    []
+  );
+
+  const handleDeleteEdge = useCallback(
+    (edgeId: string) => {
+      setEdges((eds) => eds.filter((e) => e.id !== edgeId));
       toast.success("Connection removed");
     },
     [setEdges]
   );
+
+  // Check Links handler
+  const handleCheckLinks = useCallback(async () => {
+    const urlNodes = nodes.filter((n) => {
+      const url = (n.data as LinkNodeData)?.url;
+      return url && url !== "https://";
+    });
+
+    if (urlNodes.length === 0) {
+      toast.info("No URLs to check");
+      return;
+    }
+
+    setIsCheckingLinks(true);
+    try {
+      const urls = urlNodes.map((n) => (n.data as LinkNodeData).url!);
+      const { data, error } = await supabase.functions.invoke("check-url-status", {
+        body: { urls },
+      });
+
+      if (error) throw error;
+
+      const results = data.results as Record<string, { status: string; code: number }>;
+
+      setNodes((nds) =>
+        nds.map((node) => {
+          const url = (node.data as LinkNodeData)?.url;
+          if (url && results[url]) {
+            return {
+              ...node,
+              data: { ...node.data, urlStatus: results[url].status },
+            };
+          }
+          return node;
+        })
+      );
+
+      const live = Object.values(results).filter((r) => r.status === "live").length;
+      const broken = Object.values(results).filter((r) => r.status === "broken").length;
+      const redirects = Object.values(results).filter((r) => r.status === "redirect").length;
+
+      toast.success(`Link check complete: ${live} live, ${redirects} redirects, ${broken} broken`);
+    } catch (err) {
+      console.error("Link check error:", err);
+      toast.error("Failed to check links");
+    } finally {
+      setIsCheckingLinks(false);
+    }
+  }, [nodes, setNodes]);
 
   // Node click handler for editing
   const onNodeClick = useCallback(
@@ -1335,6 +1396,7 @@ function MapEditorInner() {
           onEdgeClick={onEdgeClick}
           onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           fitView
           minZoom={0.1}
           maxZoom={2}
@@ -1462,6 +1524,26 @@ function MapEditorInner() {
                 }}
               />
               <div className="h-px bg-border" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleCheckLinks}
+                      disabled={isCheckingLinks}
+                      title="Check Links"
+                    >
+                      {isCheckingLinks ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <LinkIcon className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Check all links</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <LogoUpload
                 mapId={mapId}
                 logoUrl={logoUrl}

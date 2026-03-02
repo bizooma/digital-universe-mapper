@@ -16,6 +16,7 @@ import { Share2, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
 import mapprrLogo from "@/assets/mapprr-logo.png";
 import { Button } from "@/components/ui/button";
 import { nodeTypes } from "@/components/editor/LinkNode";
+import { edgeTypes } from "@/components/editor/EditableEdge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -232,6 +233,7 @@ function PublicMapViewInner() {
           edges={edges}
           onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           fitView
           nodesDraggable={false}
           nodesConnectable={false}
