@@ -138,7 +138,7 @@ export default function LifetimeDeal() {
                 Lifetime Pro Plus Access
               </h1>
               
-              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
                 Pay once, use forever. Get unlimited access to all Pro Plus features with a single payment. No subscriptions, no recurring fees.
               </p>
 
