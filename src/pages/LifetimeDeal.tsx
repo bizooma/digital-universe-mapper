@@ -123,7 +123,7 @@ export default function LifetimeDeal() {
             style={{ backgroundImage: `url(${lifetimeHeroBg})` }}
           />
           <div className="absolute inset-0 bg-background/85" />
-          <div className="container mx-auto max-w-4xl text-center">
+          <div className="container mx-auto max-w-4xl text-center relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
