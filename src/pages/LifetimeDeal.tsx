@@ -144,10 +144,6 @@ export default function LifetimeDeal() {
 
               <div className="flex items-center justify-center gap-4 mb-8">
                 <span className="text-4xl md:text-5xl font-bold text-primary">$59</span>
-                <div className="text-left">
-                  <p className="text-sm text-muted-foreground line-through">$180/year</p>
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">Save 67%+</p>
-                </div>
               </div>
 
               {subscriptionLoading ? (
