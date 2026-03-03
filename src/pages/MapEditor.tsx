@@ -54,7 +54,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes, type NodeCategory, type LinkNodeData } from "@/components/editor/LinkNode";
-import { edgeTypes } from "@/components/editor/EditableEdge";
+import { edgeTypes, getEdgeMarkers } from "@/components/editor/EditableEdge";
 import { AddNodePanel } from "@/components/editor/AddNodePanel";
 import { EditNodePanel } from "@/components/editor/EditNodePanel";
 import { LogoUpload } from "@/components/editor/LogoUpload";
