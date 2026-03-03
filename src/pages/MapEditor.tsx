@@ -360,7 +360,7 @@ function MapEditorInner() {
           animated: true,
           style: { strokeWidth: 2, stroke: mapSettings.primaryColor },
           type: "editableEdge",
-          data: { edgeType: mapSettings.connectionStyle },
+          data: { edgeType: mapSettings.connectionStyle, direction: "forward" },
         }, eds)
       ),
     [setEdges, mapSettings.primaryColor, mapSettings.connectionStyle]
@@ -376,7 +376,7 @@ function MapEditorInner() {
         ...edge,
         style: { ...edge.style, strokeWidth: 2, stroke: mapSettings.primaryColor },
         type: "editableEdge",
-        data: { ...edge.data, edgeType: mapSettings.connectionStyle },
+        data: { ...edge.data, edgeType: mapSettings.connectionStyle, direction: edge.data?.direction || "forward" },
       }))
     );
     
