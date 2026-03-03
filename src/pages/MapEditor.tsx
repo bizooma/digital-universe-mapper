@@ -353,7 +353,8 @@ function MapEditorInner() {
   const shareUrl = `${window.location.origin}/view/${mapId || "new"}`;
 
   const onConnect = useCallback(
-    (params: Connection) =>
+    (params: Connection) => {
+      const markers = getEdgeMarkers("forward", mapSettings.primaryColor);
       setEdges((eds) =>
         addEdge({ 
           ...params, 
@@ -361,8 +362,10 @@ function MapEditorInner() {
           style: { strokeWidth: 2, stroke: mapSettings.primaryColor },
           type: "editableEdge",
           data: { edgeType: mapSettings.connectionStyle, direction: "forward" },
+          ...markers,
         }, eds)
-      ),
+      );
+    },
     [setEdges, mapSettings.primaryColor, mapSettings.connectionStyle]
   );
 
