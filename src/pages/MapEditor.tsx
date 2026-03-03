@@ -376,7 +376,7 @@ function MapEditorInner() {
         ...edge,
         style: { ...edge.style, strokeWidth: 2, stroke: mapSettings.primaryColor },
         type: "editableEdge",
-        data: { ...edge.data, edgeType: mapSettings.connectionStyle },
+        data: { ...edge.data, edgeType: mapSettings.connectionStyle, direction: edge.data?.direction || "forward" },
       }))
     );
     
