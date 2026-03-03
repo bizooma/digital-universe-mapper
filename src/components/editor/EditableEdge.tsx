@@ -8,10 +8,11 @@ import {
   useReactFlow,
   MarkerType,
   type EdgeProps,
+  type EdgeMarker,
 } from "@xyflow/react";
 import { ArrowRight, ArrowLeft, ArrowLeftRight, Minus, Plus } from "lucide-react";
 
-type Direction = "forward" | "backward" | "both" | "none";
+export type Direction = "forward" | "backward" | "both" | "none";
 
 const DIRECTION_CYCLE: Direction[] = ["forward", "backward", "both", "none"];
 
@@ -24,18 +25,19 @@ function getDirectionIcon(dir: Direction) {
   }
 }
 
-function getMarkers(direction: Direction, color?: string) {
-  const marker = {
+/** Build markerEnd / markerStart objects for a given direction + color */
+export function getEdgeMarkers(direction: Direction, color?: string): { markerEnd?: EdgeMarker; markerStart?: EdgeMarker } {
+  const marker: EdgeMarker = {
     type: MarkerType.ArrowClosed,
-    width: 16,
-    height: 16,
+    width: 20,
+    height: 20,
     color: color || "hsl(var(--primary))",
   };
 
-  const markerEnd = direction === "forward" || direction === "both" ? marker : undefined;
-  const markerStart = direction === "backward" || direction === "both" ? marker : undefined;
-
-  return { markerEnd, markerStart };
+  return {
+    markerEnd: direction === "forward" || direction === "both" ? marker : undefined,
+    markerStart: direction === "backward" || direction === "both" ? marker : undefined,
+  };
 }
 
 function EditableEdgeComponent({
@@ -47,6 +49,8 @@ function EditableEdgeComponent({
   sourcePosition,
   targetPosition,
   style = {},
+  markerEnd,
+  markerStart,
   data,
 }: EdgeProps) {
   const edgeData = data as { label?: string; edgeType?: string; direction?: Direction } | undefined;
@@ -56,10 +60,6 @@ function EditableEdgeComponent({
   const [labelValue, setLabelValue] = useState(edgeData?.label || "");
   const inputRef = useRef<HTMLInputElement>(null);
   const { setEdges } = useReactFlow();
-
-  // Compute markers
-  const strokeColor = (style as any)?.stroke;
-  const { markerEnd, markerStart } = getMarkers(direction, strokeColor);
 
   // Choose path function based on edge type
   let edgePath: string;
@@ -110,56 +110,28 @@ function EditableEdgeComponent({
     e.stopPropagation();
     const currentIndex = DIRECTION_CYCLE.indexOf(direction);
     const nextDirection = DIRECTION_CYCLE[(currentIndex + 1) % DIRECTION_CYCLE.length];
+    const strokeColor = (style as any)?.stroke;
+    const markers = getEdgeMarkers(nextDirection, strokeColor);
+
     setEdges((eds) =>
       eds.map((edge) =>
         edge.id === id
-          ? { ...edge, data: { ...edge.data, direction: nextDirection } }
+          ? {
+              ...edge,
+              data: { ...edge.data, direction: nextDirection },
+              markerEnd: markers.markerEnd,
+              markerStart: markers.markerStart,
+            }
           : edge
       )
     );
-  }, [id, direction, setEdges]);
+  }, [id, direction, setEdges, style]);
 
   const label = edgeData?.label;
 
   return (
     <>
-      <BaseEdge
-        path={edgePath}
-        markerEnd={markerEnd ? `url(#${markerEnd.type}-${id}-end)` : undefined}
-        markerStart={markerStart ? `url(#${markerStart.type}-${id}-start)` : undefined}
-        style={style}
-      />
-      {/* SVG marker definitions */}
-      <svg style={{ position: "absolute", width: 0, height: 0 }}>
-        <defs>
-          {markerEnd && (
-            <marker
-              id={`${markerEnd.type}-${id}-end`}
-              viewBox="0 0 16 16"
-              refX="14"
-              refY="8"
-              markerWidth={markerEnd.width}
-              markerHeight={markerEnd.height}
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 16 8 L 0 16 z" fill={markerEnd.color} />
-            </marker>
-          )}
-          {markerStart && (
-            <marker
-              id={`${markerStart.type}-${id}-start`}
-              viewBox="0 0 16 16"
-              refX="2"
-              refY="8"
-              markerWidth={markerStart.width}
-              markerHeight={markerStart.height}
-              orient="auto-start-reverse"
-            >
-              <path d="M 16 0 L 0 8 L 16 16 z" fill={markerStart.color} />
-            </marker>
-          )}
-        </defs>
-      </svg>
+      <BaseEdge path={edgePath} markerEnd={markerEnd} markerStart={markerStart} style={style} />
       <EdgeLabelRenderer>
         <div
           style={{
@@ -172,8 +144,7 @@ function EditableEdgeComponent({
           {/* Direction toggle button */}
           <button
             onClick={cycleDirection}
-            className="w-6 h-6 rounded-full bg-card/80 backdrop-blur-sm border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all opacity-0 hover:opacity-100 group-hover:opacity-100 peer shadow-sm"
-            style={{ opacity: undefined }}
+            className="w-6 h-6 rounded-full bg-card/80 backdrop-blur-sm border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all opacity-40 hover:opacity-100 shadow-sm"
             title={`Direction: ${direction}. Click to cycle.`}
           >
             {getDirectionIcon(direction)}

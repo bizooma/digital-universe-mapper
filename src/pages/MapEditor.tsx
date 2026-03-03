@@ -54,7 +54,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nodeTypes, type NodeCategory, type LinkNodeData } from "@/components/editor/LinkNode";
-import { edgeTypes } from "@/components/editor/EditableEdge";
+import { edgeTypes, getEdgeMarkers } from "@/components/editor/EditableEdge";
 import { AddNodePanel } from "@/components/editor/AddNodePanel";
 import { EditNodePanel } from "@/components/editor/EditNodePanel";
 import { LogoUpload } from "@/components/editor/LogoUpload";
@@ -353,7 +353,8 @@ function MapEditorInner() {
   const shareUrl = `${window.location.origin}/view/${mapId || "new"}`;
 
   const onConnect = useCallback(
-    (params: Connection) =>
+    (params: Connection) => {
+      const markers = getEdgeMarkers("forward", mapSettings.primaryColor);
       setEdges((eds) =>
         addEdge({ 
           ...params, 
@@ -361,8 +362,10 @@ function MapEditorInner() {
           style: { strokeWidth: 2, stroke: mapSettings.primaryColor },
           type: "editableEdge",
           data: { edgeType: mapSettings.connectionStyle, direction: "forward" },
+          ...markers,
         }, eds)
-      ),
+      );
+    },
     [setEdges, mapSettings.primaryColor, mapSettings.connectionStyle]
   );
 
@@ -372,12 +375,17 @@ function MapEditorInner() {
     
     // Update edges with new color and style
     setEdges((eds) =>
-      eds.map((edge) => ({
-        ...edge,
-        style: { ...edge.style, strokeWidth: 2, stroke: mapSettings.primaryColor },
-        type: "editableEdge",
-        data: { ...edge.data, edgeType: mapSettings.connectionStyle, direction: edge.data?.direction || "forward" },
-      }))
+      eds.map((edge) => {
+        const dir = (edge.data?.direction as "forward" | "backward" | "both" | "none") || "forward";
+        const markers = getEdgeMarkers(dir, mapSettings.primaryColor);
+        return {
+          ...edge,
+          style: { ...edge.style, strokeWidth: 2, stroke: mapSettings.primaryColor },
+          type: "editableEdge",
+          data: { ...edge.data, edgeType: mapSettings.connectionStyle, direction: dir },
+          ...markers,
+        };
+      })
     );
     
     // Update all nodes with brand color and node style
