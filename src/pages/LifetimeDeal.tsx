@@ -134,11 +134,11 @@ export default function LifetimeDeal() {
                 <span className="text-sm font-medium">Limited Time Offer</span>
               </div>
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
                 Lifetime Pro Plus Access
               </h1>
               
-              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
                 Pay once, use forever. Get unlimited access to all Pro Plus features with a single payment. No subscriptions, no recurring fees.
               </p>
 
