@@ -14,6 +14,7 @@ import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import lifetimeHeroBg from "@/assets/lifetime-hero-bg.png";
 
 const features = [
   "Unlimited maps & nodes",
