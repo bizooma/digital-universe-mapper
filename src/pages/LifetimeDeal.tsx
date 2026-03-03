@@ -134,7 +134,7 @@ export default function LifetimeDeal() {
                 <span className="text-sm font-medium">Limited Time Offer</span>
               </div>
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
                 Lifetime Pro Plus Access
               </h1>
               
