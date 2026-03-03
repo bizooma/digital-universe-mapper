@@ -56,6 +56,12 @@ function EditableEdgeComponent({
   const edgeData = data as { label?: string; edgeType?: string; direction?: Direction } | undefined;
   const edgeType = edgeData?.edgeType || "default";
   const direction: Direction = edgeData?.direction || "forward";
+
+  // Compute animation direction class name for the edge path
+  const animationClass =
+    direction === "backward"
+      ? "react-flow__edge-path-reverse"
+      : "";
   const [isEditing, setIsEditing] = useState(false);
   const [labelValue, setLabelValue] = useState(edgeData?.label || "");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -131,7 +137,7 @@ function EditableEdgeComponent({
 
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} markerStart={markerStart} style={style} />
+      <BaseEdge path={edgePath} markerEnd={markerEnd} markerStart={markerStart} style={style} className={animationClass} />
       <EdgeLabelRenderer>
         <div
           style={{

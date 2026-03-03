@@ -278,6 +278,11 @@
     stroke-width: 4px !important;
     stroke: hsl(var(--destructive)) !important;
   }
+
+  /* Reverse ant-march animation for backward edges */
+  .react-flow__edge-path-reverse {
+    animation-direction: reverse !important;
+  }
 }
 
 @layer utilities {
