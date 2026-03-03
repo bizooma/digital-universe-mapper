@@ -137,7 +137,7 @@ function EditableEdgeComponent({
 
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} markerStart={markerStart} style={style} />
+      <BaseEdge path={edgePath} markerEnd={markerEnd} markerStart={markerStart} style={style} className={animationClass} />
       <EdgeLabelRenderer>
         <div
           style={{
