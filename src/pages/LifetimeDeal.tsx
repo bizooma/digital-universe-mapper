@@ -116,8 +116,13 @@ export default function LifetimeDeal() {
       ]} />
       
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="py-16 md:py-24 px-4">
+        <section className="relative py-16 md:py-24 px-4 overflow-hidden">
+          {/* Background image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${lifetimeHeroBg})` }}
+          />
+          <div className="absolute inset-0 bg-background/85" />
           <div className="container mx-auto max-w-4xl text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
