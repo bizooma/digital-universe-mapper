@@ -375,12 +375,17 @@ function MapEditorInner() {
     
     // Update edges with new color and style
     setEdges((eds) =>
-      eds.map((edge) => ({
-        ...edge,
-        style: { ...edge.style, strokeWidth: 2, stroke: mapSettings.primaryColor },
-        type: "editableEdge",
-        data: { ...edge.data, edgeType: mapSettings.connectionStyle, direction: edge.data?.direction || "forward" },
-      }))
+      eds.map((edge) => {
+        const dir = edge.data?.direction || "forward";
+        const markers = getEdgeMarkers(dir, mapSettings.primaryColor);
+        return {
+          ...edge,
+          style: { ...edge.style, strokeWidth: 2, stroke: mapSettings.primaryColor },
+          type: "editableEdge",
+          data: { ...edge.data, edgeType: mapSettings.connectionStyle, direction: dir },
+          ...markers,
+        };
+      })
     );
     
     // Update all nodes with brand color and node style
