@@ -376,7 +376,7 @@ function MapEditorInner() {
     // Update edges with new color and style
     setEdges((eds) =>
       eds.map((edge) => {
-        const dir = edge.data?.direction || "forward";
+        const dir = (edge.data?.direction as "forward" | "backward" | "both" | "none") || "forward";
         const markers = getEdgeMarkers(dir, mapSettings.primaryColor);
         return {
           ...edge,
