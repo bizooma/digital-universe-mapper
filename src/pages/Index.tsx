@@ -11,9 +11,6 @@ import { useCanonicalUrl } from "@/hooks/useCanonicalUrl";
 import { usePageMeta } from "@/hooks/usePageMeta";
 
 const Index = () => {
-  const [showPopup, setShowPopup] = useState(true);
-  const navigate = useNavigate();
-
   useCanonicalUrl();
   usePageMeta({
     title: "Mapprr - Create Beautiful Visual Site Maps",
@@ -22,25 +19,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {showPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setShowPopup(false)}>
-          <div className="relative max-w-lg w-full mx-4" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setShowPopup(false)}
-              className="absolute -top-3 -right-3 z-10 bg-background rounded-full p-1.5 shadow-lg hover:bg-muted transition-colors"
-              aria-label="Close popup"
-            >
-              <X className="h-6 w-6 text-foreground" />
-            </button>
-            <img
-              src={lifetimeDealImage}
-              alt="Limited Lifetime Deal - $59 one-time payment"
-              className="w-full rounded-lg cursor-pointer shadow-2xl"
-              onClick={() => { setShowPopup(false); navigate("/lifetime"); }}
-            />
-          </div>
-        </div>
-      )}
       <Navbar />
       <main>
         <HeroSection />
