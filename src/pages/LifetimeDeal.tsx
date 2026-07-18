@@ -18,7 +18,7 @@ import lifetimeHeroBg from "@/assets/lifetime-hero-bg.png";
 
 const features = [
   "Unlimited maps & nodes",
-  "All export formats (PNG, SVG, PDF)",
+  "All export formats (PNG, PDF)",
   "Custom branding & logo upload",
   "No watermarks",
   "CSV bulk import",
