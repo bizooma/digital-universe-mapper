@@ -66,18 +66,6 @@ const handler = async (req: Request): Promise<Response> => {
         redirectTo: safeRedirectUrl,
       },
     });
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
-    // Generate password reset link using Supabase Auth
-    const { data, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
-      type: "recovery",
-      email: email,
-      options: {
-        redirectTo: redirectUrl,
-      },
-    });
 
     if (resetError) {
       console.error("Error generating reset link:", resetError);
