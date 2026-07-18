@@ -47,11 +47,15 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    const session = await stripe.checkout.sessions.retrieve(session_id);
-    logStep("Retrieved checkout session", { 
+    const LIFETIME_PRICE_ID = "price_1SxtZOEV6sbsDlR83lUxpX0j";
+
+    const session = await stripe.checkout.sessions.retrieve(session_id, {
+      expand: ["line_items", "line_items.data.price"],
+    });
+    logStep("Retrieved checkout session", {
       status: session.payment_status,
       mode: session.mode,
-      metadata: session.metadata 
+      metadata: session.metadata,
     });
 
     // Verify payment was successful
@@ -68,6 +72,20 @@ serve(async (req) => {
     if (session.metadata?.user_id !== user.id) {
       throw new Error("User mismatch");
     }
+
+    // Verify the exact lifetime price ID was purchased (not just any paid item)
+    const lineItems = session.line_items?.data ?? [];
+    const matched = lineItems.find(
+      (li) => (li.price?.id ?? "") === LIFETIME_PRICE_ID && (li.quantity ?? 0) >= 1
+    );
+    if (!matched) {
+      logStep("Price ID mismatch", {
+        expected: LIFETIME_PRICE_ID,
+        got: lineItems.map((li) => li.price?.id),
+      });
+      throw new Error("Purchased item does not match the lifetime offer");
+    }
+
 
     // Check if already recorded
     const { data: existing } = await supabaseClient
