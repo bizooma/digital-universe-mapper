@@ -197,6 +197,7 @@ serve(async (req) => {
     }
 
     logStep("Determined plan", { plan });
+    await upsertEntitlement(supabaseClient, user.id, plan);
 
     return new Response(JSON.stringify({
       subscribed: true,
