@@ -22,6 +22,17 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+async function upsertEntitlement(supabaseClient: ReturnType<typeof createClient>, userId: string, tier: string) {
+  try {
+    await supabaseClient.from("user_entitlements").upsert(
+      { user_id: userId, tier, updated_at: new Date().toISOString() },
+      { onConflict: "user_id" }
+    );
+  } catch (err) {
+    logStep("Entitlement upsert failed", { error: String(err) });
+  }
+}
+
 // Check if user has admin role
 async function checkAdminRole(supabaseClient: ReturnType<typeof createClient>, userId: string): Promise<boolean> {
   try {
@@ -29,6 +40,7 @@ async function checkAdminRole(supabaseClient: ReturnType<typeof createClient>, u
       _user_id: userId,
       _role: "admin"
     });
+
     if (error) {
       logStep("Admin role check error", { error: error.message });
       return false;
