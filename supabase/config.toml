@@ -10,10 +10,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.firecrawl-map]
-verify_jwt = false
+verify_jwt = true
 
 [functions.firecrawl-crawl-nav]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-password-reset]
 verify_jwt = false
