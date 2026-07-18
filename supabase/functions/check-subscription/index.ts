@@ -22,6 +22,17 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+async function upsertEntitlement(supabaseClient: ReturnType<typeof createClient>, userId: string, tier: string) {
+  try {
+    await supabaseClient.from("user_entitlements").upsert(
+      { user_id: userId, tier, updated_at: new Date().toISOString() },
+      { onConflict: "user_id" }
+    );
+  } catch (err) {
+    logStep("Entitlement upsert failed", { error: String(err) });
+  }
+}
+
 // Check if user has admin role
 async function checkAdminRole(supabaseClient: ReturnType<typeof createClient>, userId: string): Promise<boolean> {
   try {
@@ -29,6 +40,7 @@ async function checkAdminRole(supabaseClient: ReturnType<typeof createClient>, u
       _user_id: userId,
       _role: "admin"
     });
+
     if (error) {
       logStep("Admin role check error", { error: error.message });
       return false;
@@ -78,6 +90,7 @@ serve(async (req) => {
 
     if (lifetimePurchase && !lifetimeError) {
       logStep("User has lifetime purchase", { plan: lifetimePurchase.plan });
+      await upsertEntitlement(supabaseClient, user.id, lifetimePurchase.plan as string);
       return new Response(JSON.stringify({
         subscribed: true,
         plan: lifetimePurchase.plan,
@@ -94,6 +107,7 @@ serve(async (req) => {
     const isAdmin = await checkAdminRole(supabaseClient, user.id);
     if (isAdmin) {
       logStep("User is admin, granting team access");
+      await upsertEntitlement(supabaseClient, user.id, "team");
       return new Response(JSON.stringify({
         subscribed: true,
         plan: "team",
@@ -111,6 +125,7 @@ serve(async (req) => {
 
     if (customers.data.length === 0) {
       logStep("No customer found, returning free tier");
+      await upsertEntitlement(supabaseClient, user.id, "free");
       return new Response(JSON.stringify({ 
         subscribed: false, 
         plan: "free",
@@ -134,6 +149,7 @@ serve(async (req) => {
 
     if (subscriptions.data.length === 0) {
       logStep("No active subscription found");
+      await upsertEntitlement(supabaseClient, user.id, "free");
       return new Response(JSON.stringify({ 
         subscribed: false, 
         plan: "free",
@@ -181,6 +197,7 @@ serve(async (req) => {
     }
 
     logStep("Determined plan", { plan });
+    await upsertEntitlement(supabaseClient, user.id, plan);
 
     return new Response(JSON.stringify({
       subscribed: true,

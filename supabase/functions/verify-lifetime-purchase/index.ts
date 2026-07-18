@@ -114,6 +114,16 @@ serve(async (req) => {
 
     logStep("Lifetime purchase recorded", { purchaseId: purchase.id });
 
+    // Update server-side entitlements
+    try {
+      await supabaseClient.from("user_entitlements").upsert(
+        { user_id: user.id, tier: purchase.plan, updated_at: new Date().toISOString() },
+        { onConflict: "user_id" }
+      );
+    } catch (err) {
+      logStep("Entitlement upsert failed", { error: String(err) });
+    }
+
     return new Response(JSON.stringify({ 
       success: true, 
       purchase_id: purchase.id,

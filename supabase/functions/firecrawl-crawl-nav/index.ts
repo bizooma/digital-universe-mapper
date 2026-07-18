@@ -1,7 +1,13 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.2';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+const PROPLUS_TIERS = new Set(['proplus', 'team']);
+const MAP_MAX_LIMIT = 200;
+
 
 interface NavItem {
   label: string;
@@ -165,7 +171,32 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Auth + entitlement
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
+    );
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData.user) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { data: tierData } = await supabase.rpc('get_user_tier', { _user_id: userData.user.id });
+    const tier = (tierData as string) || 'free';
+    if (!PROPLUS_TIERS.has(tier)) {
+      return new Response(JSON.stringify({ success: false, error: 'Pro Plus plan required for the URL crawler.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const { url } = await req.json();
+
 
     if (!url) {
       return new Response(
@@ -206,7 +237,7 @@ Deno.serve(async (req) => {
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           url: formattedUrl,
-          limit: 200,
+          limit: MAP_MAX_LIMIT,
           includeSubdomains: false,
         }),
       }),
