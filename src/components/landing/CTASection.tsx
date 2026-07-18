@@ -25,8 +25,9 @@ export function CTASection() {
             <span className="text-gradient-primary">digital universe</span>?
           </h2>
           <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-            Join thousands of creators who are already visualizing and optimizing their online presence with Mapprr.
+            Start visualizing and optimizing your online presence with Mapprr — free to try, no credit card required.
           </p>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="hero" size="xl" asChild>
               <Link to="/signup">
