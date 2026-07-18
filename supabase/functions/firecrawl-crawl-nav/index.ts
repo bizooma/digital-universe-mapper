@@ -237,7 +237,7 @@ Deno.serve(async (req) => {
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           url: formattedUrl,
-          limit: 200,
+          limit: MAP_MAX_LIMIT,
           includeSubdomains: false,
         }),
       }),
