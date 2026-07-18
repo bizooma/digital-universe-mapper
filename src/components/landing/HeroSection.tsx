@@ -106,16 +106,16 @@ export function HeroSection() {
             </Button>
           </motion.div>
 
-          {/* Social Proof */}
+          {/* Soft launch note */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-white/70"
+            className="mt-12 flex items-center justify-center gap-2 text-sm text-white/70"
           >
-            <AvatarStack />
-            <span>Join other freelancers and agencies mapping their digital presence</span>
+            <span>Built for freelancers and agencies mapping their digital presence.</span>
           </motion.div>
+
         </div>
 
         {/* Hero Visual - Interactive Map Preview */}
