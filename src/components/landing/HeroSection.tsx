@@ -2,20 +2,9 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import heroBackground from "@/assets/hero-background.jpg";
 import heroMapExample from "@/assets/hero-map-example.png";
-
-// Avatar data with real images from UI Avatars/reliable sources
-const avatars = [
-  { name: "Sarah Chen", role: "Content Creator", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" },
-  { name: "Marcus Johnson", role: "Entrepreneur", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" },
-  { name: "Emily Rodriguez", role: "Influencer", image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face" },
-  { name: "David Kim", role: "Brand Manager", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" },
-  { name: "Lisa Thompson", role: "Digital Marketer", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face" },
-];
 
 // Floating orbs background component
 function FloatingOrbs() {
@@ -37,37 +26,6 @@ function FloatingOrbs() {
   );
 }
 
-// Avatar stack with tooltips
-function AvatarStack() {
-  return (
-    <TooltipProvider delayDuration={100}>
-      <div className="flex -space-x-3">
-        {avatars.map((avatar, i) => (
-          <Tooltip key={avatar.name}>
-            <TooltipTrigger asChild>
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.5 + i * 0.1 }}
-              >
-                <Avatar className="w-9 h-9 border-2 border-white/30 ring-2 ring-primary/20 hover:ring-primary/50 hover:scale-110 transition-all cursor-pointer">
-                  <AvatarImage src={avatar.image} alt={avatar.name} />
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-xs">
-                    {avatar.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-              </motion.div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-card/95 backdrop-blur-sm border-border">
-              <p className="font-medium text-foreground">{avatar.name}</p>
-              <p className="text-xs text-muted-foreground">{avatar.role}</p>
-            </TooltipContent>
-          </Tooltip>
-        ))}
-      </div>
-    </TooltipProvider>
-  );
-}
 
 export function HeroSection() {
   return (
