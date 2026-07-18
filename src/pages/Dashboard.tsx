@@ -448,13 +448,6 @@ export default function Dashboard() {
               <Map className="h-4 w-4" />
               My Maps
             </Link>
-            <Link
-              to="/dashboard/shared"
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
-            >
-              <GitBranch className="h-4 w-4" />
-              Shared with me
-            </Link>
             {isPro && (
               <Link
                 to="/analytics"

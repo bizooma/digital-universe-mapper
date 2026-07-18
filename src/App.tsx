@@ -11,7 +11,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
-import SharedMaps from "./pages/SharedMaps";
+
 import MapEditor from "./pages/MapEditor";
 import PublicMapView from "./pages/PublicMapView";
 import EmbedMapView from "./pages/EmbedMapView";
@@ -41,7 +41,6 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/shared" element={<ProtectedRoute><SharedMaps /></ProtectedRoute>} />
             <Route path="/editor/:id" element={<ProtectedRoute><MapEditor /></ProtectedRoute>} />
             <Route path="/view/:id" element={<PublicMapView />} />
             <Route path="/embed/:id" element={<EmbedMapView />} />

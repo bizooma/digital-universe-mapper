@@ -71,24 +71,6 @@ const plans = [
     priceKeyYearly: "proplus_yearly" as PriceKey,
     popular: true,
   },
-  {
-    name: "Team",
-    monthlyPrice: 20,
-    yearlyPrice: 192,
-    description: "For teams and agencies",
-    features: [
-      "Everything in Pro Plus",
-      "Up to 5 team members",
-      "Shared workspace",
-      "Team collaboration",
-      "Admin controls",
-      "Priority support",
-    ],
-    notIncluded: [],
-    priceKeyMonthly: "team_monthly" as PriceKey,
-    priceKeyYearly: "team_yearly" as PriceKey,
-    popular: false,
-  },
 ];
 
 const faqs = [
