@@ -107,6 +107,7 @@ serve(async (req) => {
     const isAdmin = await checkAdminRole(supabaseClient, user.id);
     if (isAdmin) {
       logStep("User is admin, granting team access");
+      await upsertEntitlement(supabaseClient, user.id, "team");
       return new Response(JSON.stringify({
         subscribed: true,
         plan: "team",
