@@ -311,6 +311,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_entitlements: {
+        Row: {
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -337,6 +355,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_tier_node_cap: { Args: { _tier: string }; Returns: number }
+      get_user_tier: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
