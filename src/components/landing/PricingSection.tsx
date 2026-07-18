@@ -55,24 +55,6 @@ const plans = [
     ctaVariant: "hero" as const,
     popular: true,
   },
-  {
-    name: "Team",
-    price: "$20",
-    period: "/month",
-    yearlyPrice: "$192/year (save 20%)",
-    description: "For teams and agencies",
-    features: [
-      "Everything in Pro Plus",
-      "Up to 5 team members",
-      "Shared workspace",
-      "Team collaboration",
-      "Admin controls",
-      "Priority support",
-    ],
-    cta: "Get Started",
-    ctaVariant: "outline" as const,
-    popular: false,
-  },
 ];
 
 export function PricingSection() {
