@@ -46,4 +46,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.check-url-status]
-verify_jwt = false
+verify_jwt = true

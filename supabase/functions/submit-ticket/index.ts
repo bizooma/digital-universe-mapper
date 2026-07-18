@@ -99,19 +99,29 @@ const handler = async (req: Request): Promise<Response> => {
           timeStyle: "short",
         });
 
+        const escapeHtml = (s: string) => s
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        const safeSubject = escapeHtml(subject.trim());
+        const safeDescription = escapeHtml(description.trim()).replace(/\n/g, "<br />");
+        const safeEmail = escapeHtml(user.email ?? "");
+        const safeScreenshotUrl = screenshotUrl && /^https?:\/\//i.test(screenshotUrl)
+          ? encodeURI(screenshotUrl)
+          : null;
+
         await resend.emails.send({
           from: "Mapprr Support <noreply@bizooma.com>",
           to: ["support@bizooma.com"],
-          subject: `New Support Ticket: ${subject.trim()}`,
+          subject: `New Support Ticket: ${subject.trim().slice(0, 120)}`,
           html: `
             <h2>New Support Ticket</h2>
-            <p><strong>From:</strong> ${user.email}</p>
+            <p><strong>From:</strong> ${safeEmail}</p>
             <p><strong>Submitted:</strong> ${submittedAt}</p>
             <hr />
-            <p><strong>Subject:</strong> ${subject.trim()}</p>
+            <p><strong>Subject:</strong> ${safeSubject}</p>
             <h3>Issue Description:</h3>
-            <p>${description.trim().replace(/\n/g, "<br />")}</p>
-            ${screenshotUrl ? `<p><strong>Screenshot:</strong> <a href="${screenshotUrl}">View Screenshot</a></p>` : ""}
+            <p>${safeDescription}</p>
+            ${safeScreenshotUrl ? `<p><strong>Screenshot:</strong> <a href="${safeScreenshotUrl}">View Screenshot</a></p>` : ""}
             <hr />
             <p><a href="https://digital-universe-mapper.lovable.app/admin">View in Admin Dashboard</a></p>
           `,
