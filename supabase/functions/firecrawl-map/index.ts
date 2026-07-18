@@ -15,7 +15,32 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Auth
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
+    );
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData.user) {
+      return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { data: tierData } = await supabase.rpc('get_user_tier', { _user_id: userData.user.id });
+    const tier = (tierData as string) || 'free';
+    if (!PROPLUS_TIERS.has(tier)) {
+      return new Response(JSON.stringify({ success: false, error: 'Pro Plus plan required for the URL crawler.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const { url, options } = await req.json();
+
 
     if (!url) {
       return new Response(
