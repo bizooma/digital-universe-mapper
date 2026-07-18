@@ -90,6 +90,7 @@ serve(async (req) => {
 
     if (lifetimePurchase && !lifetimeError) {
       logStep("User has lifetime purchase", { plan: lifetimePurchase.plan });
+      await upsertEntitlement(supabaseClient, user.id, lifetimePurchase.plan as string);
       return new Response(JSON.stringify({
         subscribed: true,
         plan: lifetimePurchase.plan,
