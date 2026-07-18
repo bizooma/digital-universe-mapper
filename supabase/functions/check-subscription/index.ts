@@ -125,6 +125,7 @@ serve(async (req) => {
 
     if (customers.data.length === 0) {
       logStep("No customer found, returning free tier");
+      await upsertEntitlement(supabaseClient, user.id, "free");
       return new Response(JSON.stringify({ 
         subscribed: false, 
         plan: "free",
