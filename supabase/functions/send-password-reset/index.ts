@@ -29,8 +29,43 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Missing required fields");
     }
 
+    // Strict allowlist for redirect URL to prevent open-redirect abuse
+    const ALLOWED_HOSTS = new Set([
+      "mapprr.com",
+      "www.mapprr.com",
+      "digital-universe-mapper.lovable.app",
+    ]);
+    let parsedRedirect: URL;
+    try {
+      parsedRedirect = new URL(redirectUrl);
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid redirect URL" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    if (parsedRedirect.protocol !== "https:" || !ALLOWED_HOSTS.has(parsedRedirect.hostname)) {
+      return new Response(
+        JSON.stringify({ error: "Redirect URL not allowed" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    const safeRedirectUrl = parsedRedirect.toString();
+
     // Create Supabase admin client to generate password reset link
     const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Generate password reset link using Supabase Auth
+    const { data, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
+      type: "recovery",
+      email: email,
+      options: {
+        redirectTo: safeRedirectUrl,
+      },
+    });
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
