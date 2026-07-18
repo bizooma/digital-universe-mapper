@@ -11,7 +11,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
-import SharedMaps from "./pages/SharedMaps";
+
 import MapEditor from "./pages/MapEditor";
 import PublicMapView from "./pages/PublicMapView";
 import EmbedMapView from "./pages/EmbedMapView";
