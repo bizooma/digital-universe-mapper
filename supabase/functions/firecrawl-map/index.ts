@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         url: formattedUrl,
         search: options?.search,
-        limit: options?.limit || 100,
+        limit: Math.min(Math.max(1, Number(options?.limit) || 100), MAP_MAX_LIMIT),
         includeSubdomains: options?.includeSubdomains ?? false,
       }),
     });
