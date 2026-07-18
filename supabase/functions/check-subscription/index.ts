@@ -149,6 +149,7 @@ serve(async (req) => {
 
     if (subscriptions.data.length === 0) {
       logStep("No active subscription found");
+      await upsertEntitlement(supabaseClient, user.id, "free");
       return new Response(JSON.stringify({ 
         subscribed: false, 
         plan: "free",
