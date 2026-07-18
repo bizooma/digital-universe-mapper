@@ -13,6 +13,40 @@ interface ContactRequest {
   message: string;
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// Per-IP rate limit (per edge instance): 3 submissions per 10 minutes
+const RATE_WINDOW_MS = 10 * 60 * 1000;
+const RATE_MAX = 3;
+const ipHits = new Map<string, number[]>();
+
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  const arr = (ipHits.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (arr.length >= RATE_MAX) {
+    ipHits.set(ip, arr);
+    return true;
+  }
+  arr.push(now);
+  ipHits.set(ip, arr);
+  // Occasional cleanup
+  if (ipHits.size > 5000) {
+    for (const [k, v] of ipHits) {
+      const filtered = v.filter((t) => now - t < RATE_WINDOW_MS);
+      if (filtered.length === 0) ipHits.delete(k);
+      else ipHits.set(k, filtered);
+    }
+  }
+  return false;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -24,9 +58,20 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("RESEND_API_KEY not configured");
     }
 
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+      req.headers.get("cf-connecting-ip") ||
+      "unknown";
+
+    if (rateLimited(ip)) {
+      return new Response(
+        JSON.stringify({ error: "Too many submissions. Please try again later." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { name, email, message }: ContactRequest = await req.json();
 
-    // Validate input
     if (!name?.trim() || !email?.trim() || !message?.trim()) {
       return new Response(
         JSON.stringify({ error: "All fields are required" }),
@@ -48,25 +93,37 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Basic email format check
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || email.length > 254) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email address" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const resend = new Resend(resendApiKey);
     const submittedAt = new Date().toLocaleString("en-US", {
       dateStyle: "medium",
       timeStyle: "short",
     });
 
+    const safeName = escapeHtml(name.trim());
+    const safeEmail = escapeHtml(email.trim());
+    const safeMessage = escapeHtml(message.trim()).replace(/\n/g, "<br />");
+
     await resend.emails.send({
       from: "Mapprr Contact <noreply@bizooma.com>",
       to: ["joe@bizooma.com"],
       replyTo: email.trim(),
-      subject: `Contact Form: ${name.trim()}`,
+      subject: `Contact Form: ${name.trim().slice(0, 80)}`,
       html: `
         <h2>New Contact Form Submission</h2>
-        <p><strong>From:</strong> ${name.trim()}</p>
-        <p><strong>Email:</strong> ${email.trim()}</p>
+        <p><strong>From:</strong> ${safeName}</p>
+        <p><strong>Email:</strong> ${safeEmail}</p>
         <p><strong>Submitted:</strong> ${submittedAt}</p>
         <hr />
         <h3>Message:</h3>
-        <p>${message.trim().replace(/\n/g, "<br />")}</p>
+        <p>${safeMessage}</p>
       `,
     });
 
