@@ -79,8 +79,9 @@ export default function Privacy() {
           <section className="space-y-4">
             <h2 className="text-xl font-semibold text-foreground">5. Data Security</h2>
             <p className="text-muted-foreground">
-              We implement industry-standard security measures to protect your data, including encryption 
-              in transit and at rest, secure authentication, and regular security audits.
+              We rely on our infrastructure providers' standard security controls, including HTTPS/TLS
+              for data in transit and managed authentication. We do not currently claim independent
+              security certifications or third-party audits.
             </p>
           </section>
 
