@@ -94,21 +94,21 @@ export function SupportDialog({ trigger }: SupportDialogProps) {
 
       // Upload screenshot if provided
       if (screenshot) {
+        const { data: authData } = await supabase.auth.getUser();
+        const uid = authData.user?.id;
         const fileExt = screenshot.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const fileName = `${uid}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("ticket-attachments")
-          .upload(fileName, screenshot);
+        const { data: uploadData, error: uploadError } = uid
+          ? await supabase.storage.from("ticket-attachments").upload(fileName, screenshot)
+          : { data: null, error: new Error("Not signed in") };
 
-        if (uploadError) {
+        if (uploadError || !uploadData) {
           console.error("Screenshot upload error:", uploadError);
           toast.error("Failed to upload screenshot, but submitting ticket anyway");
         } else {
-          const { data: urlData } = supabase.storage
-            .from("ticket-attachments")
-            .getPublicUrl(uploadData.path);
-          screenshotUrl = urlData.publicUrl;
+          // Store the private storage path; admins view it via a short-lived signed link
+          screenshotUrl = uploadData.path;
         }
       }
 
