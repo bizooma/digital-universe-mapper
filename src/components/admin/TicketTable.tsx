@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Loader2, ChevronDown, ChevronUp, MessageSquare, Image } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +53,39 @@ const statusLabels: Record<string, string> = {
   in_progress: "In Progress",
   resolved: "Resolved",
 };
+
+function toStoragePath(value: string): string {
+  const marker = "/ticket-attachments/";
+  const idx = value.indexOf(marker);
+  return idx >= 0 ? decodeURIComponent(value.slice(idx + marker.length).split("?")[0]) : value;
+}
+
+function TicketScreenshot({ value }: { value: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    supabase.storage
+      .from("ticket-attachments")
+      .createSignedUrl(toStoragePath(value), 60 * 10)
+      .then(({ data }) => {
+        if (active) setUrl(data?.signedUrl ?? null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [value]);
+
+  if (!url) return <p className="text-sm text-muted-foreground">Loading screenshot…</p>;
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" className="inline-block">
+      <img
+        src={url}
+        alt="Ticket screenshot"
+        className="max-h-48 rounded-md border hover:opacity-80 transition-opacity"
+      />
+    </a>
+  );
+}
 
 export function TicketTable({ tickets, loading, onRefresh }: TicketTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -214,18 +247,7 @@ export function TicketTable({ tickets, loading, onRefresh }: TicketTableProps) {
                           <Image className="h-4 w-4" />
                           Screenshot
                         </h4>
-                        <a
-                          href={ticket.screenshot_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-block"
-                        >
-                          <img
-                            src={ticket.screenshot_url}
-                            alt="Ticket screenshot"
-                            className="max-h-48 rounded-md border hover:opacity-80 transition-opacity"
-                          />
-                        </a>
+                        <TicketScreenshot value={ticket.screenshot_url} />
                       </div>
                     )}
 
